@@ -1,10 +1,9 @@
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 
+-- 古いGUIがあれば二重起動防止のために消去
 local oldGui = LocalPlayer:WaitForChild("PlayerGui"):FindFirstChild("BL_Gui")
-if oldGui then 
-	oldGui:Destroy() 
-end
+if oldGui then oldGui:Destroy() end
 
 local BlacklistIds = { 123456, 987654 }
 local selectedPlayer = nil
@@ -23,7 +22,7 @@ local ScreenGui = Instance.new("ScreenGui", LocalPlayer.PlayerGui)
 ScreenGui.Name = "BL_Gui"
 ScreenGui.ResetOnSpawn = false
 
--- 【超重要修正】最初から画面に見える状態(Visible = true)で左端に配置
+-- 🔵 Open Button (Always visible at the left side from the start)
 local OpenButton = Instance.new("TextButton", ScreenGui)
 OpenButton.Size = UDim2.new(0, 65, 0, 35)
 OpenButton.Position = UDim2.new(0, 15, 0.5, -17)
@@ -32,7 +31,7 @@ OpenButton.TextSize = 14
 OpenButton.Font = Enum.Font.SourceSansBold
 OpenButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 OpenButton.BackgroundColor3 = Color3.fromRGB(0, 120, 255)
-OpenButton.Visible = true -- 最初から表示！
+OpenButton.Visible = true
 
 local OB_Corner = Instance.new("UICorner", OpenButton)
 OB_Corner.CornerRadius = UDim.new(0, 8)
@@ -40,13 +39,13 @@ local OB_Stroke = Instance.new("UIStroke", OpenButton)
 OB_Stroke.Color = Color3.fromRGB(255, 255, 255)
 OB_Stroke.Thickness = 1.5
 
--- Main Menu Frame (最初は開くボタンがあるので、こちらは非表示からスタート)
+-- 📱 Main Menu Frame (Starts invisible because Open Button is active)
 local MainFrame = Instance.new("Frame", ScreenGui)
 MainFrame.Size = UDim2.new(0, 310, 0, 450)
 MainFrame.Position = UDim2.new(0.5, -155, 0.5, -225)
 MainFrame.BackgroundColor3 = Color3.fromRGB(17, 17, 22)
 MainFrame.BorderSizePixel = 0
-MainFrame.Visible = false -- 最初は閉じておきます
+MainFrame.Visible = false
 
 local MF_Corner = Instance.new("UICorner", MainFrame)
 MF_Corner.CornerRadius = UDim.new(0, 12)
@@ -54,38 +53,26 @@ MF_Corner.CornerRadius = UDim.new(0, 12)
 -- Title
 local TitleLabel = Instance.new("TextLabel", MainFrame)
 TitleLabel.Size = UDim2.new(1, -80, 0, 45)
-TitleLabel.Text = " Member List"
+TitleLabel.Text = "  Member List"
 TitleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
 TitleLabel.TextSize = 16
 TitleLabel.Font = Enum.Font.SourceSansBold
 TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
 TitleLabel.BackgroundTransparency = 1
 
--- ❌ Close Button
+-- ❌ Close Button (Bold text for guaranteed pure white color)
 local CloseButton = Instance.new("TextButton", MainFrame)
 CloseButton.Size = UDim2.new(0, 35, 0, 35)
-CloseButton.Position = UDim2.new(1, -75, 0, 5)
+CloseButton.Position = UDim2.new(1, -40, 0, 5)
 CloseButton.Text = "X"
 CloseButton.TextSize = 16
 CloseButton.Font = Enum.Font.SourceSansBold
-CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255) -- Pure White
+CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255) -- Pure White X Text
 CloseButton.BackgroundColor3 = Color3.fromRGB(220, 60, 60)
 CloseButton.BorderSizePixel = 0
 
 local CB_Corner = Instance.new("UICorner", CloseButton)
 CB_Corner.CornerRadius = UDim.new(0, 8)
-
--- ⚙️ Settings Button
-local SettingsButton = Instance.new("TextButton", MainFrame)
-SettingsButton.Size = UDim2.new(0, 35, 0, 35)
-SettingsButton.Position = UDim2.new(1, -40, 0, 5)
-SettingsButton.Text = "⚙️"
-SettingsButton.TextSize = 14
-SettingsButton.BackgroundColor3 = Color3.fromRGB(45, 45, 55)
-SettingsButton.BorderSizePixel = 0
-
-local SB_Corner = Instance.new("UICorner", SettingsButton)
-SB_Corner.CornerRadius = UDim.new(0, 8)
 
 -- Player List Area
 local ScrollingFrame = Instance.new("ScrollingFrame", MainFrame)
@@ -126,36 +113,16 @@ AddButton.BorderSizePixel = 0
 local AB_Corner = Instance.new("UICorner", AddButton)
 AB_Corner.CornerRadius = UDim.new(0, 8)
 
--- Settings Menu Frame
-local SettingsFrame = Instance.new("Frame", ScreenGui)
-SettingsFrame.Size = UDim2.new(0, 240, 0, 120)
-SettingsFrame.Position = UDim2.new(0.5, -120, 0.5, -60)
-SettingsFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
-SettingsFrame.Visible = false
-
-local SF_Corner = Instance.new("UICorner", SettingsFrame)
-SF_Corner.CornerRadius = UDim.new(0, 10)
-
-local SettingsText = Instance.new("TextLabel", SettingsFrame)
-SettingsText.Size = UDim2.new(1, 0, 1, 0)
-SettingsText.Text = "[How to Use]\n'X' Button or M Key : Open/Close\n\n1. Click player frame\n2. Type 'C' in input box\n3. Click 'Add' button"
-SettingsText.TextColor3 = Color3.fromRGB(255, 255, 255)
-SettingsText.TextSize = 13
-SettingsText.Font = Enum.Font.SourceSans
-SettingsText.BackgroundTransparency = 1
-
 ----------------------------------------------------------------
--- ⚙️ Open/Close Systems (Fixed)
+-- ⚙️ Open/Close Systems
 ----------------------------------------------------------------
 local function setMenuVisible(visible)
 	MainFrame.Visible = visible
-	OpenButton.Visible = not visible -- メニューを開いたらOpenボタンを隠し、閉じたら出す
-	if not visible then SettingsFrame.Visible = false end
+	OpenButton.Visible = not visible -- Hide Open button when menu is open, show when closed
 end
 
 CloseButton.MouseButton1Click:Connect(function() setMenuVisible(false) end)
 OpenButton.MouseButton1Click:Connect(function() setMenuVisible(true) end)
-SettingsButton.MouseButton1Click:Connect(function() SettingsFrame.Visible = not SettingsFrame.Visible end)
 
 game:GetService("UserInputService").InputBegan:Connect(function(input, processed)
 	if not processed and input.KeyCode == Enum.KeyCode.M then
@@ -188,18 +155,10 @@ local function drawList()
 		stroke.Color = Color3.fromRGB(0, 120, 255)
 		stroke.Thickness = 2
 		stroke.Enabled = false
-		
-		local img = Instance.new("ImageLabel", entry)
-		img.Size = UDim2.new(0, 36, 0, 36)
-		img.Position = UDim2.new(0, 6, 0, 6)
-		img.BackgroundTransparency = 1
-		
-		local I_Corner = Instance.new("UICorner", img)
-		I_Corner.CornerRadius = UDim.new(0, 18)
 
 		local nameLabel = Instance.new("TextLabel", entry)
-		nameLabel.Size = UDim2.new(1, -55, 1, 0)
-		nameLabel.Position = UDim2.new(0, 50, 0, 0)
+		nameLabel.Size = UDim2.new(1, -15, 1, 0)
+		nameLabel.Position = UDim2.new(0, 15, 0, 0)
 		nameLabel.BackgroundTransparency = 1
 		nameLabel.TextXAlignment = Enum.TextXAlignment.Left
 		nameLabel.TextSize = 14
@@ -214,12 +173,6 @@ local function drawList()
 		else
 			nameLabel.TextColor3 = Color3.fromRGB(160, 160, 170)
 		end
-		
-		task.spawn(function()
-			pcall(function() 
-				img.Image = Players:GetUserThumbnailAsync(player.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size100x100) 
-			end)
-		end)
 		
 		if player ~= LocalPlayer then
 			local selectBtn = Instance.new("TextButton", entry)
