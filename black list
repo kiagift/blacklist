@@ -22,10 +22,10 @@ local ScreenGui = Instance.new("ScreenGui", LocalPlayer.PlayerGui)
 ScreenGui.Name = "BL_Gui"
 ScreenGui.ResetOnSpawn = false
 
--- 🔵 Open Button (Always visible at the left side from the start)
+-- 🔵 Open Button (Always visible at the TOP RIGHT from the start)
 local OpenButton = Instance.new("TextButton", ScreenGui)
 OpenButton.Size = UDim2.new(0, 65, 0, 35)
-OpenButton.Position = UDim2.new(0, 15, 0.5, -17)
+OpenButton.Position = UDim2.new(1, -80, 0, 15) -- 【修正】画面の右上に配置！
 OpenButton.Text = "Open"
 OpenButton.TextSize = 14
 OpenButton.Font = Enum.Font.SourceSansBold
@@ -39,7 +39,7 @@ local OB_Stroke = Instance.new("UIStroke", OpenButton)
 OB_Stroke.Color = Color3.fromRGB(255, 255, 255)
 OB_Stroke.Thickness = 1.5
 
--- 📱 Main Menu Frame (Starts invisible because Open Button is active)
+-- 📱 Main Menu Frame (Starts invisible)
 local MainFrame = Instance.new("Frame", ScreenGui)
 MainFrame.Size = UDim2.new(0, 310, 0, 450)
 MainFrame.Position = UDim2.new(0.5, -155, 0.5, -225)
@@ -60,14 +60,14 @@ TitleLabel.Font = Enum.Font.SourceSansBold
 TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
 TitleLabel.BackgroundTransparency = 1
 
--- ❌ Close Button (Bold text for guaranteed pure white color)
+-- ❌ Close Button (Bold X text with Guaranteed Pure White)
 local CloseButton = Instance.new("TextButton", MainFrame)
 CloseButton.Size = UDim2.new(0, 35, 0, 35)
 CloseButton.Position = UDim2.new(1, -40, 0, 5)
 CloseButton.Text = "X"
 CloseButton.TextSize = 16
 CloseButton.Font = Enum.Font.SourceSansBold
-CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255) -- Pure White X Text
+CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255) -- 【修正】完璧な真っ白文字！
 CloseButton.BackgroundColor3 = Color3.fromRGB(220, 60, 60)
 CloseButton.BorderSizePixel = 0
 
@@ -118,7 +118,7 @@ AB_Corner.CornerRadius = UDim.new(0, 8)
 ----------------------------------------------------------------
 local function setMenuVisible(visible)
 	MainFrame.Visible = visible
-	OpenButton.Visible = not visible -- Hide Open button when menu is open, show when closed
+	OpenButton.Visible = not visible -- メニューを開いたらOpenボタンを隠し、閉じたら出す
 end
 
 CloseButton.MouseButton1Click:Connect(function() setMenuVisible(false) end)
@@ -131,7 +131,7 @@ game:GetService("UserInputService").InputBegan:Connect(function(input, processed
 end)
 
 ----------------------------------------------------------------
--- 👥 Draw List
+-- 👥 Draw List (Crash-proof version)
 ----------------------------------------------------------------
 local function drawList()
 	for _, child in ipairs(ScrollingFrame:GetChildren()) do
@@ -189,10 +189,19 @@ local function drawList()
 		end
 	end
 	
+	-- 一番上に自分を表示
 	addPlayerEntry(LocalPlayer, "Me")
-	for _, player in ipairs(Players:GetPlayers()) do
-		if player ~= LocalPlayer then 
-			if isBlacklisted(player.UserId) then addPlayerEntry(player, "Blacklist") else addPlayerEntry(player, "Normal") end
+	
+	-- 安全に他の全プレイヤーをロード
+	local allPlayers = Players:GetPlayers()
+	for i = 1, #allPlayers do
+		local p = allPlayers[i]
+		if p and p ~= LocalPlayer and p.Parent then
+			if isBlacklisted(p.UserId) then 
+				addPlayerEntry(p, "Blacklist") 
+			else 
+				addPlayerEntry(p, "Normal") 
+			end
 		end
 	end
 end
@@ -208,7 +217,9 @@ AddButton.MouseButton1Click:Connect(function()
 	end
 end)
 
-if _G.b_a then _G.b_a:Disconnect() end
-if _G.b_r then _G.b_r:Disconnect() end
-_G.b_a = Players.PlayerAdded:Connect(drawList)
-_G.b_r = Players.PlayerRemoving:Connect(drawList)
+-- 接続バグを完全に修正した安全なループ監視
+task.spawn(function()
+	while task.wait(2) do
+		pcall(drawList)
+	end
+end)
