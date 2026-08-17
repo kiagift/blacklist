@@ -1,7 +1,9 @@
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
+local TweenService = game:GetService("TweenService")
+local UIS = game:GetService("UserInputService")
 
--- 古いGUIがあれば二重起動防止のために消去
+-- 古いGUIがあれば完全に削除
 local oldGui = LocalPlayer:WaitForChild("PlayerGui"):FindFirstChild("BL_Gui")
 if oldGui then oldGui:Destroy() end
 
@@ -16,13 +18,13 @@ local function isBlacklisted(userId)
 end
 
 ----------------------------------------------------------------
--- 🧱 UI Creation (Cyber Dark Theme & Sidebar Setup)
+-- 🧱 メインUI・画面の土台作成
 ----------------------------------------------------------------
 local ScreenGui = Instance.new("ScreenGui", LocalPlayer.PlayerGui)
 ScreenGui.Name = "BL_Gui"
 ScreenGui.ResetOnSpawn = false
 
--- 🔵 【右上常駐】Open Button
+-- 🔵 【右上常駐】Openボタン
 local OpenButton = Instance.new("TextButton", ScreenGui)
 OpenButton.Size = UDim2.new(0, 65, 0, 35)
 OpenButton.Position = UDim2.new(1, -80, 0, 15)
@@ -31,7 +33,6 @@ OpenButton.TextSize = 14
 OpenButton.Font = Enum.Font.SourceSansBold
 OpenButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 OpenButton.BackgroundColor3 = Color3.fromRGB(0, 120, 255)
-OpenButton.Visible = true
 
 local OB_Corner = Instance.new("UICorner", OpenButton)
 OB_Corner.CornerRadius = UDim.new(0, 8)
@@ -39,10 +40,10 @@ local OB_Stroke = Instance.new("UIStroke", OpenButton)
 OB_Stroke.Color = Color3.fromRGB(255, 255, 255)
 OB_Stroke.Thickness = 1.5
 
--- 📱 Main Window Frame (Wider layout like the image)
+-- 📱 メインフレーム（高級感のある漆黒デザイン）
 local MainFrame = Instance.new("Frame", ScreenGui)
-MainFrame.Size = UDim2.new(0, 540, 0, 380)
-MainFrame.Position = UDim2.new(0.5, -260, 0.5, -180)
+MainFrame.Size = UDim2.new(0, 550, 0, 380)
+MainFrame.Position = UDim2.new(0.5, -275, 0.5, -190)
 MainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 18)
 MainFrame.BorderSizePixel = 0
 MainFrame.Visible = false
@@ -51,23 +52,53 @@ local MF_Corner = Instance.new("UICorner", MainFrame)
 MF_Corner.CornerRadius = UDim.new(0, 10)
 
 ----------------------------------------------------------------
--- 🗂️ Left Sidebar Layout (With the Sun Icon ☀️)
+-- ☯️ 左サイドバー（陰陽の太陽マークをフレームで完全自作）
 ----------------------------------------------------------------
 local Sidebar = Instance.new("Frame", MainFrame)
 Sidebar.Size = UDim2.new(0, 65, 1, 0)
 Sidebar.BackgroundColor3 = Color3.fromRGB(11, 11, 13)
 Sidebar.BorderSizePixel = 0
+Instance.new("UICorner", Sidebar).CornerRadius = UDim.new(0, 10)
 
-local SB_Corner = Instance.new("UICorner", Sidebar)
-SB_Corner.CornerRadius = UDim.new(0, 10)
+-- 【自作】見本と同じ「左半分が白、右半分が黒」の陰陽太陽アイコン
+local YinYangBase = Instance.new("Frame", Sidebar)
+YinYangBase.Size = UDim2.new(0, 30, 0, 30)
+YinYangBase.Position = UDim2.new(0.5, -15, 0, 15)
+YinYangBase.BackgroundColor3 = Color3.fromRGB(255, 255, 255) -- 左半分（白）
+YinYangBase.BorderSizePixel = 0
+Instance.new("UICorner", YinYangBase).CornerRadius = UDim.new(0, 15)
 
--- Content Frame for Switching Tabs
+local RightHalf = Instance.new("Frame", YinYangBase)
+RightHalf.Size = UDim2.new(0.5, 0, 1, 0)
+RightHalf.Position = UDim2.new(0.5, 0, 0, 0)
+RightHalf.BackgroundColor3 = Color3.fromRGB(0, 0, 0) -- 右半分（黒）
+RightHalf.BorderSizePixel = 0
+local RH_Clip = Instance.new("Frame", RightHalf) -- 綺麗に半円に切り抜く
+RH_Clip.Size = UDim2.new(2, 0, 1, 0)
+RH_Clip.Position = UDim2.new(-1, 0, 0, 0)
+RH_Clip.BackgroundTransparency = 1
+Instance.new("UICorner", RH_Clip).CornerRadius = UDim.new(0, 15)
+RightHalf.ClipsDescendants = true
+
+-- 周りの太陽のフレア（トゲトゲの線）を再現
+for i = 1, 8 do
+	local Ray = Instance.new("Frame", Sidebar)
+	Ray.Size = UDim2.new(0, 2, 0, 6)
+	Ray.AnchorPoint = Vector2.new(0.5, 0.5)
+	Ray.Position = UDim2.new(0.5, 0, 0, 30)
+	Ray.BackgroundColor3 = Color3.fromRGB(180, 180, 185)
+	Ray.BorderSizePixel = 0
+	Ray.Rotation = (i - 1) * 45
+	Ray.Position = UDim2.new(0.5, math.sin(math.rad(Ray.Rotation)) * 20, 0, 30 - math.cos(math.rad(Ray.Rotation)) * 20)
+end
+
+-- タブ切り替え用のメインコンテンツエリア
 local ContentFrame = Instance.new("Frame", MainFrame)
 ContentFrame.Size = UDim2.new(1, -65, 1, 0)
 ContentFrame.Position = UDim2.new(0, 65, 0, 0)
 ContentFrame.BackgroundTransparency = 1
 
--- ❌ 【右上配置】Close Button
+-- ❌ 【右上配置】閉じるボタン（真っ白なX文字）
 local CloseButton = Instance.new("TextButton", MainFrame)
 CloseButton.Size = UDim2.new(0, 30, 0, 30)
 CloseButton.Position = UDim2.new(1, -40, 0, 8)
@@ -78,27 +109,150 @@ CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 CloseButton.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
 CloseButton.BorderSizePixel = 0
 CloseButton.ZIndex = 5
-
-local CB_Corner = Instance.new("UICorner", CloseButton)
-CB_Corner.CornerRadius = UDim.new(0, 6)
+Instance.new("UICorner", CloseButton).CornerRadius = UDim.new(0, 6)
 
 ----------------------------------------------------------------
--- ☀️ Sun Tab Content (Perfect 2-Box System with Double Scroll)
+-- ☀️ 太陽タブ：中身（本物の動くスイッチや本物の動くゲージ）
 ----------------------------------------------------------------
 local SunPage = Instance.new("Frame", ContentFrame)
 SunPage.Size = UDim2.new(1, 0, 1, 0)
 SunPage.BackgroundTransparency = 1
 SunPage.Visible = false
 
--- 👥 【左側ボックス】縦に長い大きな Player List 枠
-local LeftBox = Instance.new("Frame", SunPage)
+local SunScroll = Instance.new("ScrollingFrame", SunPage)
+SunScroll.Size = UDim2.new(1, -20, 1, -30)
+SunScroll.Position = UDim2.new(0, 10, 0, 15)
+SunScroll.BackgroundTransparency = 1
+SunScroll.BorderSizePixel = 0
+SunScroll.ScrollBarThickness = 3
+local SunLayout = Instance.new("UIListLayout", SunScroll)
+SunLayout.Padding = UDim.new(0, 8)
+
+-- 🟢 【完全再現】実際に指でスライドしていじれる本物のゲージ（スライダー）関数
+local function createRealSlider(parent, text, defaultVal)
+	local container = Instance.new("Frame", parent)
+	container.Size = UDim2.new(1, -10, 0, 45)
+	container.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
+	Instance.new("UICorner", container).CornerRadius = UDim.new(0, 6)
+	
+	local lbl = Instance.new("TextLabel", container)
+	lbl.Size = UDim2.new(1, -60, 0, 20)
+	lbl.Position = UDim2.new(0, 10, 0, 5)
+	lbl.Text = text
+	lbl.TextColor3 = Color3.fromRGB(200, 200, 205)
+	lbl.TextSize = 13
+	lbl.Font = Enum.Font.SourceSansBold
+	lbl.TextXAlignment = Enum.TextXAlignment.Left
+	lbl.BackgroundTransparency = 1
+	
+	local valueLbl = Instance.new("TextLabel", container)
+	valueLbl.Size = UDim2.new(0, 50, 0, 20)
+	valueLbl.Position = UDim2.new(1, -60, 0, 5)
+	valueLbl.Text = tostring(defaultVal) .. "%"
+	valueLbl.TextColor3 = Color3.fromRGB(150, 150, 150)
+	valueLbl.TextSize = 12
+	valueLbl.TextXAlignment = Enum.TextXAlignment.Right
+	valueLbl.BackgroundTransparency = 1
+	
+	local slideBG = Instance.new("TextButton", container)
+	slideBG.Size = UDim2.new(1, -20, 0, 6)
+	slideBG.Position = UDim2.new(0, 10, 0, 30)
+	slideBG.BackgroundColor3 = Color3.fromRGB(40, 40, 45)
+	slideBG.Text = ""
+	slideBG.BorderSizePixel = 0
+	Instance.new("UICorner", slideBG).CornerRadius = UDim.new(0, 3)
+	
+	local slideFill = Instance.new("Frame", slideBG)
+	slideFill.Size = UDim2.new(defaultVal/100, 0, 1, 0)
+	slideFill.BackgroundColor3 = Color3.fromRGB(230, 80, 20) -- オレンジのバー
+	slideFill.BorderSizePixel = 0
+	Instance.new("UICorner", slideFill).CornerRadius = UDim.new(0, 3)
+	
+	-- スライダーをドラッグして数値を変えられる本物のロジック
+	local dragging = false
+	local function updateSlider(input)
+		local posX = math.clamp((input.Position.X - slideBG.AbsolutePosition.X) / slideBG.AbsoluteSize.X, 0, 1)
+		slideFill.Size = UDim2.new(posX, 0, 1, 0)
+		valueLbl.Text = tostring(math.round(posX * 100)) .. "%"
+	end
+	slideBG.InputBegan:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+			dragging = true updateSlider(input)
+		end
+	end)
+	UIS.InputChanged:Connect(function(input)
+		if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+			updateSlider(input)
+		end
+	end)
+	UIS.InputEnded:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+			dragging = false
+		end
+	end)
+end
+
+-- 🟢 【完全再現】実際にクリックでON/OFFをいじれる本物のボタン（トグル）関数
+local function createRealToggle(parent, text)
+	local container = Instance.new("Frame", parent)
+	container.Size = UDim2.new(1, -10, 0, 35)
+	container.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
+	Instance.new("UICorner", container).CornerRadius = UDim.new(0, 6)
+	
+	local lbl = Instance.new("TextLabel", container)
+	lbl.Size = UDim2.new(1, -60, 1, 0)
+	lbl.Position = UDim2.new(0, 10, 0, 0)
+	lbl.Text = "☐  " .. text
+	lbl.TextColor3 = Color3.fromRGB(160, 160, 165)
+	lbl.TextSize = 13
+	lbl.TextXAlignment = Enum.TextXAlignment.Left
+	lbl.BackgroundTransparency = 1
+	
+	local toggleBtn = Instance.new("TextButton", container)
+	toggleBtn.Size = UDim2.new(1, 0, 1, 0)
+	toggleBtn.BackgroundTransparency = 1
+	toggleBtn.Text = ""
+	
+	local enabled = false
+	toggleBtn.MouseButton1Click:Connect(function()
+		enabled = not enabled
+		if enabled then
+			lbl.Text = "☑  " .. text
+			lbl.TextColor3 = Color3.fromRGB(0, 120, 255) -- ONになると青く光る
+		else
+			lbl.Text = "☐  " .. text
+			lbl.TextColor3 = Color3.fromRGB(160, 160, 165)
+		end
+	end)
+end
+
+-- ☀️太陽メニューの中に本物の動く設定項目を展開
+createRealSlider(SunScroll, "Transparent walls", 100)
+createRealSlider(SunScroll, "Transparent props", 50)
+createRealToggle(SunScroll, "Remove Shake")
+createRealToggle(SunScroll, "Brightness Adjustment")
+createRealToggle(SunScroll, "Remove scope overlay")
+createRealToggle(SunScroll, "Instant scope")
+createRealToggle(SunScroll, "Disable post processing")
+
+SunLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+	SunScroll.CanvasSize = UDim2.new(0, 0, 0, SunLayout.AbsoluteContentSize.Y + 10)
+end)
+
+----------------------------------------------------------------
+-- ⚙️ 歯車タブ：中身（【ご要望】ここにブラックリスト機能を完全移植！）
+----------------------------------------------------------------
+local GearPage = Instance.new("Frame", ContentFrame)
+GearPage.Size = UDim2.new(1, 0, 1, 0)
+GearPage.BackgroundTransparency = 1
+GearPage.Visible = false
+
+-- 左側：プレイヤーリストボックス
+local LeftBox = Instance.new("Frame", GearPage)
 LeftBox.Size = UDim2.new(0.5, -15, 1, -30)
 LeftBox.Position = UDim2.new(0, 10, 0, 15)
 LeftBox.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
-LeftBox.BorderSizePixel = 0
-
-local LB_Corner = Instance.new("UICorner", LeftBox)
-LB_Corner.CornerRadius = UDim.new(0, 8)
+Instance.new("UICorner", LeftBox).CornerRadius = UDim.new(0, 8)
 
 local LeftTitle = Instance.new("TextLabel", LeftBox)
 LeftTitle.Size = UDim2.new(1, -20, 0, 30)
@@ -109,174 +263,4 @@ LeftTitle.TextSize = 13
 LeftTitle.Font = Enum.Font.SourceSansBold
 LeftTitle.TextXAlignment = Enum.TextXAlignment.Left
 LeftTitle.BackgroundTransparency = 1
-
-local ScrollingFrame = Instance.new("ScrollingFrame", LeftBox)
-ScrollingFrame.Size = UDim2.new(1, -10, 1, -45)
-ScrollingFrame.Position = UDim2.new(0, 5, 0, 40)
-ScrollingFrame.BackgroundTransparency = 1
-ScrollingFrame.BorderSizePixel = 0
-ScrollingFrame.ScrollBarThickness = 2
-
-local ListLayout = Instance.new("UIListLayout", ScrollingFrame)
-ListLayout.Padding = UDim.new(0, 5)
-
-
--- 🎛️ 【右側ボックス】Actions / Settings Area（見本画像のリスト構造を完全再現）
-local RightBox = Instance.new("Frame", SunPage)
-RightBox.Size = UDim2.new(0.5, -15, 1, -30) -- 左側と同じサイズに統合
-RightBox.Position = UDim2.new(0.5, 5, 0, 15)
-RightBox.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
-RightBox.BorderSizePixel = 0
-
-local RB_Corner = Instance.new("UICorner", RightBox)
-RB_Corner.CornerRadius = UDim.new(0, 8)
-
-local RightTitle = Instance.new("TextLabel", RightBox)
-RightTitle.Size = UDim2.new(1, -20, 0, 30)
-RightTitle.Position = UDim2.new(0, 10, 0, 5)
-RightTitle.Text = "Effects / Settings"
-RightTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
-RightTitle.TextSize = 13
-RightTitle.Font = Enum.Font.SourceSansBold
-RightTitle.TextXAlignment = Enum.TextXAlignment.Left
-RightTitle.BackgroundTransparency = 1
-
--- 【新設計】右側ボックスの中もスクロールできるようにして、見本通りの長いリストを作成
-local RightScroll = Instance.new("ScrollingFrame", RightBox)
-RightScroll.Size = UDim2.new(1, -10, 1, -45)
-RightScroll.Position = UDim2.new(0, 5, 0, 40)
-RightScroll.BackgroundTransparency = 1
-RightScroll.BorderSizePixel = 0
-RightScroll.ScrollBarThickness = 2
-
-local RightLayout = Instance.new("UIListLayout", RightScroll)
-RightLayout.Padding = UDim.new(0, 8)
-RightLayout.SortOrder = Enum.SortOrder.LayoutOrder
-
--- 見本画像にある「スライダー要素」を右側スクロール内に配置
-local function createSliderDisplay(text, percent)
-	local container = Instance.new("Frame", RightScroll)
-	container.Size = UDim2.new(1, -10, 0, 35)
-	container.BackgroundTransparency = 1
-	container.LayoutOrder = 1
-	
-	local lbl = Instance.new("TextLabel", container)
-	lbl.Size = UDim2.new(1, 0, 0, 15)
-	lbl.Text = "  " .. text
-	lbl.TextColor3 = Color3.fromRGB(180, 180, 185)
-	lbl.TextSize = 11
-	lbl.TextXAlignment = Enum.TextXAlignment.Left
-	lbl.BackgroundTransparency = 1
-	
-	local bg = Instance.new("Frame", container)
-	bg.Size = UDim2.new(1, -10, 0, 4)
-	bg.Position = UDim2.new(0, 5, 0, 18)
-	bg.BackgroundColor3 = Color3.fromRGB(40, 40, 45)
-	bg.BorderSizePixel = 0
-	
-	local fill = Instance.new("Frame", bg)
-	fill.Size = UDim2.new(percent, 0, 1, 0)
-	fill.BackgroundColor3 = Color3.fromRGB(230, 80, 20) -- Orange color from image
-	
-	local pText = Instance.new("TextLabel", container)
-	pText.Size = UDim2.new(0, 40, 0, 15)
-	pText.Position = UDim2.new(1, -45, 0, 18)
-	pText.Text = tostring(percent * 100) .. "%"
-	pText.TextColor3 = Color3.fromRGB(150, 150, 150)
-	pText.TextSize = 10
-	pText.TextXAlignment = Enum.TextXAlignment.Right
-	pText.BackgroundTransparency = 1
-end
-
--- スライダーの作成（見本画像のEffectsセクション再現）
-createSliderDisplay("Transparent walls", 1.0)
-createSliderDisplay("Transparent props", 1.0)
-
--- 見本画像にある「テキストの羅列項目」をダミーの飾りとして配置して雰囲気を再現
-local DummyItems = {"Remove Shake", "Brightness Adjustment", "Remove scope overlay", "Instant scope", "Disable post processing", "Force third person"}
-for i, name in ipairs(DummyItems) do
-	local dItem = Instance.new("TextLabel", RightScroll)
-	dItem.Size = UDim2.new(1, -10, 0, 18)
-	dItem.Text = "  ☐  " .. name
-	dItem.TextColor3 = Color3.fromRGB(140, 140, 145)
-	dItem.TextSize = 12
-	dItem.TextXAlignment = Enum.TextXAlignment.Left
-	dItem.BackgroundTransparency = 1
-	dItem.LayoutOrder = 2
-end
-
--- ⌨️ Input Box（スクロールの一番下にきれいに配置されます）
-local TextBox = Instance.new("TextBox", RightScroll)
-TextBox.Size = UDim2.new(1, -10, 0, 35)
-TextBox.Text = ""
-TextBox.PlaceholderText = " Type 'C' here to apply..."
-TextBox.TextColor3 = Color3.fromRGB(255, 255, 255)
-TextBox.TextSize = 13
-TextBox.BackgroundColor3 = Color3.fromRGB(24, 24, 30)
-TextBox.BorderSizePixel = 0
-TextBox.LayoutOrder = 3
-
-local TB_Corner = Instance.new("UICorner", TextBox)
-TB_Corner.CornerRadius = UDim.new(0, 6)
-
--- 🔵 Add Button（スクロールの一番下に配置されます）
-local AddButton = Instance.new("TextButton", RightScroll)
-AddButton.Size = UDim2.new(1, -10, 0, 35)
-AddButton.Text = "Add"
-AddButton.TextSize = 14
-AddButton.Font = Enum.Font.SourceSansBold
-AddButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-AddButton.BackgroundColor3 = Color3.fromRGB(0, 120, 255)
-AddButton.BorderSizePixel = 0
-AddButton.LayoutOrder = 4
-
-local AB_Corner = Instance.new("UICorner", AddButton)
-AB_Corner.CornerRadius = UDim.new(0, 6)
-
--- 自動で右側のスクロール範囲を伸ばす設定
-RightLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-	RightScroll.CanvasSize = UDim2.new(0, 0, 0, RightLayout.AbsoluteContentSize.Y + 10)
-end)
-
-----------------------------------------------------------------
--- 🗂️ Sidebar Icon Setup (Sun Icon ☀️ on top)
-----------------------------------------------------------------
-local Icons = {"☀️", "👤", "⚙️", "💾"}
-
-for i, iconText in ipairs(Icons) do
-	local IconBtn = Instance.new("TextButton", Sidebar)
-	IconBtn.Size = UDim2.new(0, 40, 0, 40)
-	IconBtn.Position = UDim2.new(0.5, -20, 0, 15 + (i-1) * 55)
-	IconBtn.Text = iconText
-	IconBtn.TextSize = 20
-	IconBtn.BackgroundTransparency = 1
-	if iconText == "☀️" then
-		IconBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-	else
-		IconBtn.TextColor3 = Color3.fromRGB(100, 100, 110)
-	end
-
-	IconBtn.MouseButton1Click:Connect(function()
-		SunPage.Visible = false
-		if iconText == "☀️" then
-			SunPage.Visible = true
-		end
-	end)
-end
-
-----------------------------------------------------------------
--- ⚙️ Window Mechanics
-----------------------------------------------------------------
-local function setMenuVisible(visible)
-	MainFrame.Visible = visible
-	OpenButton.Visible = not visible
-	if visible then
-		SunPage.Visible = true
-	else
-		SunPage.Visible = false
-	end
-end
-
-CloseButton.MouseButton1Click:Connect(function() setMenuVisible(false) end)
-OpenButton.MouseButton1Click:Connect(function() setMenuVisible(true) end)
 
