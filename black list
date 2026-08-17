@@ -1,12 +1,11 @@
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 local UserInputService = game:GetService("UserInputService")
+local SoundService = game:GetService("SoundService")
 
 -- 既存の同じGUIがあれば削除
 local oldGui = LocalPlayer:WaitForChild("PlayerGui"):FindFirstChild("BL_Gui")
-if oldGui then 
-	oldGui:Destroy() 
-end
+if oldGui then oldGui:Destroy() end
 
 local BlacklistIds = { 123456, 987654 }
 local selectedPlayer = nil
@@ -17,6 +16,31 @@ local function isBlacklisted(userId)
 	end
 	return false
 end
+
+----------------------------------------------------------------
+-- 🔊 【新機能】KJボイス全自動ロード再生システム
+----------------------------------------------------------------
+task.spawn(function()
+	local kjSound = Instance.new("Sound")
+	-- KJの「もう遊びは終わりだ」の公式オーディオアセットIDを設定
+	kjSound.SoundId = "rbxassetid://18434079822" 
+	kjSound.Volume = 3 -- しっかり聞こえる大音量設定
+	kjSound.PlayOnRemove = false
+	
+	-- 3D音源ではなく、プレイヤーの画面全体にステレオで響かせる設定
+	kjSound.Parent = SoundService
+	
+	-- ロード直後に即座に再生
+	if not kjSound.IsLoaded then
+		kjSound.Loaded:Wait()
+	end
+	kjSound:Play()
+	
+	-- 再生が終わったら自動でお掃除
+	kjSound.Ended:Connect(function()
+		kjSound:Destroy()
+	end)
+end)
 
 ----------------------------------------------------------------
 -- ⚙️ 開閉キーのカスタム設定エリア
@@ -67,7 +91,6 @@ Sidebar.BackgroundColor3 = Color3.fromRGB(11, 11, 13)
 Sidebar.BorderSizePixel = 0
 Instance.new("UICorner", Sidebar).CornerRadius = UDim.new(0, 10)
 
--- 【陰陽サークル】左半分が白、右半分が黒のサークル
 local YinYangBase = Instance.new("Frame", Sidebar)
 YinYangBase.Size = UDim2.new(0, 30, 0, 30)
 YinYangBase.Position = UDim2.new(0.5, -15, 0, 15)
@@ -88,7 +111,6 @@ RH_Clip.Position = UDim2.new(-1, 0, 0, 0)
 RH_Clip.BackgroundTransparency = 1
 Instance.new("UICorner", RH_Clip).CornerRadius = UDim.new(0, 15)
 
--- 周りの太陽の光（フレアの線）を再現
 for i = 1, 8 do
 	local Ray = Instance.new("Frame", Sidebar)
 	Ray.Size = UDim2.new(0, 2, 0, 6)
@@ -118,9 +140,6 @@ CloseButton.BorderSizePixel = 0
 CloseButton.ZIndex = 5
 Instance.new("UICorner", CloseButton).CornerRadius = UDim.new(0, 6)
 
-----------------------------------------------------------------
--- ☀️ 太陽マーク専用ページ（ダミー空間）
-----------------------------------------------------------------
 local SunPage = Instance.new("Frame", ContentFrame)
 SunPage.Size = UDim2.new(1, 0, 1, 0)
 SunPage.BackgroundTransparency = 1
@@ -134,15 +153,12 @@ SunTitle.TextSize = 14
 SunTitle.Font = Enum.Font.SourceSansItalic
 SunTitle.BackgroundTransparency = 1
 
-----------------------------------------------------------------
--- ⚙️ 歯車メニュー：中身（ブラックリスト機能を実装）
-----------------------------------------------------------------
 local GearPage = Instance.new("Frame", ContentFrame)
 GearPage.Size = UDim2.new(1, 0, 1, 0)
 GearPage.BackgroundTransparency = 1
 GearPage.Visible = false
 
--- 【左側ボックス】縦に長い大きな Player List 枠
+-- 【左側ボックス】Player List 枠
 local LeftBox = Instance.new("Frame", GearPage)
 LeftBox.Size = UDim2.new(0.5, -15, 1, -30)
 LeftBox.Position = UDim2.new(0, 10, 0, 15)
@@ -210,9 +226,6 @@ AddButton.BackgroundColor3 = Color3.fromRGB(0, 120, 255)
 AddButton.BorderSizePixel = 0
 Instance.new("UICorner", AddButton).CornerRadius = UDim.new(0, 6)
 
-----------------------------------------------------------------
--- 🗂️ タブ切り替えボタンの生成
-----------------------------------------------------------------
 local Tabs = { ["☀️"] = SunPage, ["⚙️"] = GearPage }
 local TabOrder = {"☀️", "⚙️"}
 
@@ -240,9 +253,6 @@ for index, icon in ipairs(TabOrder) do
 	end)
 end
 
-----------------------------------------------------------------
--- ⚙️ 完璧な開閉ロジック
-----------------------------------------------------------------
 local function setMenuVisible(visible)
 	MainFrame.Visible = visible
 	OpenButton.Visible = not visible
@@ -270,8 +280,12 @@ UserInputService.InputBegan:Connect(function(input, processed)
 	end
 end)
 
-----------------------------------------------------------------
--- 👥 プレイヤーリスト描画システム（【強力修正】強制即時ロード設計）
-----------------------------------------------------------------
 local function drawList()
-	-- リスト内の古い枠を掃除
+	for _, child in ipairs(ScrollingFrame:GetChildren()) do 
+		if child:IsA("Frame") then child:Destroy() end 
+	end
+	
+	local order = 1
+	
+	local function addPlayerEntry(player, status)
+		if not player or not player:IsA("Player") then return end
