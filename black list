@@ -2,7 +2,7 @@ local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 local UserInputService = game:GetService("UserInputService")
 
--- 既存の同じGUIがあれば、フリーズを防ぐために確実に削除
+-- 既存の同じGUIがあれば削除
 local oldGui = LocalPlayer:WaitForChild("PlayerGui"):FindFirstChild("BL_Gui")
 if oldGui then 
 	oldGui:Destroy() 
@@ -21,7 +21,7 @@ end
 ----------------------------------------------------------------
 -- ⚙️ 開閉キーのカスタム設定エリア
 ----------------------------------------------------------------
-local TOGGLE_KEY = Enum.KeyCode.M -- 画面を出し入れするキー（好きなキーに変更OK）
+local TOGGLE_KEY = Enum.KeyCode.M -- 画面を出し入れするキー
 
 ----------------------------------------------------------------
 -- 🧱 UI全体の土台作成
@@ -30,7 +30,7 @@ local ScreenGui = Instance.new("ScreenGui", LocalPlayer.PlayerGui)
 ScreenGui.Name = "BL_Gui"
 ScreenGui.ResetOnSpawn = false
 
--- 🔵 【右上常駐】Openボタン（タップで100%開くように内部構造を独立化）
+-- 🔵 【右上常駐】Openボタン
 local OpenButton = Instance.new("TextButton", ScreenGui)
 OpenButton.Size = UDim2.new(0, 65, 0, 35)
 OpenButton.Position = UDim2.new(1, -80, 0, 15)
@@ -47,13 +47,13 @@ local OB_Stroke = Instance.new("UIStroke", OpenButton)
 OB_Stroke.Color = Color3.fromRGB(255, 255, 255)
 OB_Stroke.Thickness = 1.5
 
--- 📱 メインフレーム（高級感のある漆黒デザイン・横長2ボックス構造）
+-- 📱 メインフレーム
 local MainFrame = Instance.new("Frame", ScreenGui)
 MainFrame.Size = UDim2.new(0, 540, 0, 380)
 MainFrame.Position = UDim2.new(0.5, -270, 0.5, -190)
 MainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 18)
 MainFrame.BorderSizePixel = 0
-MainFrame.Visible = false -- 最初は閉じておきます
+MainFrame.Visible = false
 
 local MF_Corner = Instance.new("UICorner", MainFrame)
 MF_Corner.CornerRadius = UDim.new(0, 10)
@@ -71,14 +71,14 @@ Instance.new("UICorner", Sidebar).CornerRadius = UDim.new(0, 10)
 local YinYangBase = Instance.new("Frame", Sidebar)
 YinYangBase.Size = UDim2.new(0, 30, 0, 30)
 YinYangBase.Position = UDim2.new(0.5, -15, 0, 15)
-YinYangBase.BackgroundColor3 = Color3.fromRGB(255, 255, 255) -- 左半分：白
+YinYangBase.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 YinYangBase.BorderSizePixel = 0
 Instance.new("UICorner", YinYangBase).CornerRadius = UDim.new(0, 15)
 
 local RightHalf = Instance.new("Frame", YinYangBase)
 RightHalf.Size = UDim2.new(0.5, 0, 1, 0)
 RightHalf.Position = UDim2.new(0.5, 0, 0, 0)
-RightHalf.BackgroundColor3 = Color3.fromRGB(0, 0, 0) -- 右半分：黒
+RightHalf.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 RightHalf.BorderSizePixel = 0
 RightHalf.ClipsDescendants = true
 
@@ -99,27 +99,27 @@ for i = 1, 8 do
 	Ray.Position = UDim2.new(0.5, math.sin(math.rad(Ray.Rotation)) * 18, 0, 30 - math.cos(math.rad(Ray.Rotation)) * 18)
 end
 
--- タブを置くための右側の空間
+-- タブ空間
 local ContentFrame = Instance.new("Frame", MainFrame)
 ContentFrame.Size = UDim2.new(1, -65, 1, 0)
 ContentFrame.Position = UDim2.new(0, 65, 0, 0)
 ContentFrame.BackgroundTransparency = 1
 
--- ❌ 【右上配置】閉じるボタン（大きくクッキリとした太字の真っ白なX）
+-- ❌ 【右上配置】閉じるボタン
 local CloseButton = Instance.new("TextButton", MainFrame)
 CloseButton.Size = UDim2.new(0, 30, 0, 30)
 CloseButton.Position = UDim2.new(1, -40, 0, 8)
 CloseButton.Text = "X"
 CloseButton.TextSize = 16
 CloseButton.Font = Enum.Font.SourceSansBold
-CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255) -- 完全に真っ白
+CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 CloseButton.BackgroundColor3 = Color3.fromRGB(220, 60, 60)
 CloseButton.BorderSizePixel = 0
 CloseButton.ZIndex = 5
 Instance.new("UICorner", CloseButton).CornerRadius = UDim.new(0, 6)
 
 ----------------------------------------------------------------
--- ☀️ 太陽マーク専用ページ（中身を歯車に移動したため、ダミー空間）
+-- ☀️ 太陽マーク専用ページ（ダミー空間）
 ----------------------------------------------------------------
 local SunPage = Instance.new("Frame", ContentFrame)
 SunPage.Size = UDim2.new(1, 0, 1, 0)
@@ -135,7 +135,7 @@ SunTitle.Font = Enum.Font.SourceSansItalic
 SunTitle.BackgroundTransparency = 1
 
 ----------------------------------------------------------------
--- ⚙️ 歯車メニュー：中身（【ご要望】ここにブラックリストを完全実装！）
+-- ⚙️ 歯車メニュー：中身（ブラックリスト機能を実装）
 ----------------------------------------------------------------
 local GearPage = Instance.new("Frame", ContentFrame)
 GearPage.Size = UDim2.new(1, 0, 1, 0)
@@ -241,13 +241,13 @@ for index, icon in ipairs(TabOrder) do
 end
 
 ----------------------------------------------------------------
--- ⚙️ 完璧な開閉ロジック（ボタン・キー同時フリーズ対策）
+-- ⚙️ 完璧な開閉ロジック
 ----------------------------------------------------------------
 local function setMenuVisible(visible)
 	MainFrame.Visible = visible
 	OpenButton.Visible = not visible
 	if visible then 
-		GearPage.Visible = true -- 開いた時は確実にブラックリスト（歯車）側を初期表示に固定
+		GearPage.Visible = true
 		for _, child in ipairs(Sidebar:GetChildren()) do
 			if child:IsA("TextButton") and child.Text == "⚙️" then
 				child.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -261,14 +261,17 @@ local function setMenuVisible(visible)
 	end
 end
 
--- タップ時の処理を完全に一本化
 CloseButton.MouseButton1Click:Connect(function() setMenuVisible(false) end)
 OpenButton.MouseButton1Click:Connect(function() setMenuVisible(true) end)
 
--- カスタム開閉キーの監視
 UserInputService.InputBegan:Connect(function(input, processed)
 	if not processed and input.KeyCode == TOGGLE_KEY then 
 		setMenuVisible(not MainFrame.Visible) 
 	end
 end)
 
+----------------------------------------------------------------
+-- 👥 プレイヤーリスト描画システム（【強力修正】強制即時ロード設計）
+----------------------------------------------------------------
+local function drawList()
+	-- リスト内の古い枠を掃除
