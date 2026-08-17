@@ -16,16 +16,16 @@ local function isBlacklisted(userId)
 end
 
 ----------------------------------------------------------------
--- 🧱 English UI Creation
+-- 🧱 UI Creation (Cyber Dark Theme & Sidebar Setup)
 ----------------------------------------------------------------
 local ScreenGui = Instance.new("ScreenGui", LocalPlayer.PlayerGui)
 ScreenGui.Name = "BL_Gui"
 ScreenGui.ResetOnSpawn = false
 
--- 🔵 Open Button (Always visible at the TOP RIGHT from the start)
+-- 🔵 【右上常駐】Open Button
 local OpenButton = Instance.new("TextButton", ScreenGui)
 OpenButton.Size = UDim2.new(0, 65, 0, 35)
-OpenButton.Position = UDim2.new(1, -80, 0, 15) -- 【修正】画面の右上に配置！
+OpenButton.Position = UDim2.new(1, -80, 0, 15)
 OpenButton.Text = "Open"
 OpenButton.TextSize = 14
 OpenButton.Font = Enum.Font.SourceSansBold
@@ -39,86 +39,149 @@ local OB_Stroke = Instance.new("UIStroke", OpenButton)
 OB_Stroke.Color = Color3.fromRGB(255, 255, 255)
 OB_Stroke.Thickness = 1.5
 
--- 📱 Main Menu Frame (Starts invisible)
+-- 📱 Main Window Frame (Cyber Dark Style)
 local MainFrame = Instance.new("Frame", ScreenGui)
-MainFrame.Size = UDim2.new(0, 310, 0, 450)
-MainFrame.Position = UDim2.new(0.5, -155, 0.5, -225)
-MainFrame.BackgroundColor3 = Color3.fromRGB(17, 17, 22)
+MainFrame.Size = UDim2.new(0, 420, 0, 320)
+MainFrame.Position = UDim2.new(0.5, -210, 0.5, -160)
+MainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 18)
 MainFrame.BorderSizePixel = 0
 MainFrame.Visible = false
 
 local MF_Corner = Instance.new("UICorner", MainFrame)
-MF_Corner.CornerRadius = UDim.new(0, 12)
+MF_Corner.CornerRadius = UDim.new(0, 10)
+
+----------------------------------------------------------------
+-- 🗂️ Left Sidebar Layout (Vertical Tabs)
+----------------------------------------------------------------
+local Sidebar = Instance.new("Frame", MainFrame)
+Sidebar.Size = UDim2.new(0, 55, 1, 0)
+Sidebar.BackgroundColor3 = Color3.fromRGB(11, 11, 13)
+Sidebar.BorderSizePixel = 0
+
+local SB_Corner = Instance.new("UICorner", Sidebar)
+SB_Corner.CornerRadius = UDim.new(0, 10)
+
+-- 右側のコンテンツエリア（タブ切り替え用）
+local ContentFrame = Instance.new("Frame", MainFrame)
+ContentFrame.Size = UDim2.new(1, -55, 1, 0)
+ContentFrame.Position = UDim2.new(0, 55, 0, 0)
+ContentFrame.BackgroundTransparency = 1
+
+-- ❌ 【右上配置】Close Button
+local CloseButton = Instance.new("TextButton", MainFrame)
+CloseButton.Size = UDim2.new(0, 30, 0, 30)
+CloseButton.Position = UDim2.new(1, -40, 0, 8)
+CloseButton.Text = "X"
+CloseButton.TextSize = 15
+CloseButton.Font = Enum.Font.SourceSansBold
+CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+CloseButton.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+CloseButton.BorderSizePixel = 0
+CloseButton.ZIndex = 5
+
+local CB_Corner = Instance.new("UICorner", CloseButton)
+CB_Corner.CornerRadius = UDim.new(0, 6)
+
+----------------------------------------------------------------
+-- ⚙️ Blacklist Tab Content (Only visible when ⚙️ is clicked)
+----------------------------------------------------------------
+local BlacklistPage = Instance.new("Frame", ContentFrame)
+BlacklistPage.Size = UDim2.new(1, 0, 1, 0)
+BlacklistPage.BackgroundTransparency = 1
+BlacklistPage.Visible = false -- 最初は非表示
 
 -- Title
-local TitleLabel = Instance.new("TextLabel", MainFrame)
-TitleLabel.Size = UDim2.new(1, -80, 0, 45)
-TitleLabel.Text = "  Member List"
+local TitleLabel = Instance.new("TextLabel", BlacklistPage)
+TitleLabel.Size = UDim2.new(1, -45, 0, 40)
+TitleLabel.Position = UDim2.new(0, 15, 0, 5)
+TitleLabel.Text = "Blacklist Manager"
 TitleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
 TitleLabel.TextSize = 16
 TitleLabel.Font = Enum.Font.SourceSansBold
 TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
 TitleLabel.BackgroundTransparency = 1
 
--- ❌ Close Button (Bold X text with Guaranteed Pure White)
-local CloseButton = Instance.new("TextButton", MainFrame)
-CloseButton.Size = UDim2.new(0, 35, 0, 35)
-CloseButton.Position = UDim2.new(1, -40, 0, 5)
-CloseButton.Text = "X"
-CloseButton.TextSize = 16
-CloseButton.Font = Enum.Font.SourceSansBold
-CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255) -- 【修正】完璧な真っ白文字！
-CloseButton.BackgroundColor3 = Color3.fromRGB(220, 60, 60)
-CloseButton.BorderSizePixel = 0
-
-local CB_Corner = Instance.new("UICorner", CloseButton)
-CB_Corner.CornerRadius = UDim.new(0, 8)
-
--- Player List Area
-local ScrollingFrame = Instance.new("ScrollingFrame", MainFrame)
-ScrollingFrame.Size = UDim2.new(1, -16, 1, -145)
-ScrollingFrame.Position = UDim2.new(0, 8, 0, 55)
+-- Player List Area (Scrollbox)
+local ScrollingFrame = Instance.new("ScrollingFrame", BlacklistPage)
+ScrollingFrame.Size = UDim2.new(1, -30, 1, -115)
+ScrollingFrame.Position = UDim2.new(0, 15, 0, 45)
 ScrollingFrame.BackgroundTransparency = 1
 ScrollingFrame.BorderSizePixel = 0
-ScrollingFrame.ScrollBarThickness = 4
+ScrollingFrame.ScrollBarThickness = 3
 
 local ListLayout = Instance.new("UIListLayout", ScrollingFrame)
-ListLayout.Padding = UDim.new(0, 6)
+ListLayout.Padding = UDim.new(0, 5)
 
--- Input Text Box
-local TextBox = Instance.new("TextBox", MainFrame)
-TextBox.Size = UDim2.new(1, -16, 0, 35)
-TextBox.Position = UDim2.new(0, 8, 1, -85)
+-- ⌨️ Input Box
+local TextBox = Instance.new("TextBox", BlacklistPage)
+TextBox.Size = UDim2.new(1, -130, 0, 35)
+TextBox.Position = UDim2.new(0, 15, 1, -50)
 TextBox.Text = ""
-TextBox.PlaceholderText = " Type here..."
+TextBox.PlaceholderText = " Type 'C' here..."
 TextBox.TextColor3 = Color3.fromRGB(255, 255, 255)
-TextBox.TextSize = 14
-TextBox.BackgroundColor3 = Color3.fromRGB(30, 30, 38)
+TextBox.TextSize = 13
+TextBox.BackgroundColor3 = Color3.fromRGB(24, 24, 30)
 TextBox.BorderSizePixel = 0
 
 local TB_Corner = Instance.new("UICorner", TextBox)
 TB_Corner.CornerRadius = UDim.new(0, 6)
 
 -- 🔵 Add Button
-local AddButton = Instance.new("TextButton", MainFrame)
-AddButton.Size = UDim2.new(1, -16, 0, 40)
-AddButton.Position = UDim2.new(0, 8, 1, -45)
+local AddButton = Instance.new("TextButton", BlacklistPage)
+AddButton.Size = UDim2.new(0, 90, 0, 35)
+AddButton.Position = UDim2.new(1, -105, 1, -50)
 AddButton.Text = "Add"
-AddButton.TextSize = 15
+AddButton.TextSize = 14
 AddButton.Font = Enum.Font.SourceSansBold
 AddButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-AddButton.BackgroundColor3 = Color3.fromRGB(0, 140, 255)
+AddButton.BackgroundColor3 = Color3.fromRGB(0, 120, 255)
 AddButton.BorderSizePixel = 0
 
 local AB_Corner = Instance.new("UICorner", AddButton)
-AB_Corner.CornerRadius = UDim.new(0, 8)
+AB_Corner.CornerRadius = UDim.new(0, 6)
 
 ----------------------------------------------------------------
--- ⚙️ Open/Close Systems
+-- 🗂️ Sidebar Logic & Tab Switching
+----------------------------------------------------------------
+local Icons = {"👤", "❌", "⚙️", "💾"}
+local TabFrames = {nil, nil, BlacklistPage, nil} -- 3番目の⚙️マークにブラックリストを連動
+
+for i, iconText in ipairs(Icons) do
+	local IconBtn = Instance.new("TextButton", Sidebar)
+	IconBtn.Size = UDim2.new(0, 35, 0, 35)
+	IconBtn.Position = UDim2.new(0.5, -17.5, 0, 20 + (i-1) * 50)
+	IconBtn.Text = iconText
+	IconBtn.TextSize = 16
+	IconBtn.BackgroundTransparency = 1
+	if iconText == "⚙️" then
+		IconBtn.TextColor3 = Color3.fromRGB(255, 255, 255) -- 連動ボタンを目立たせる白
+	else
+		IconBtn.TextColor3 = Color3.fromRGB(100, 100, 110)
+	end
+
+	-- ⚙️ボタンをクリックした時の切り替え処理
+	IconBtn.MouseButton1Click:Connect(function()
+		-- 一旦すべてのページを隠す
+		BlacklistPage.Visible = false
+		
+		-- ⚙️（3番目のアイコン）が押されたらブラックリストを表示
+		if iconText == "⚙️" then
+			BlacklistPage.Visible = true
+		end
+	end)
+end
+
+----------------------------------------------------------------
+-- ⚙️ Window Mechanics
 ----------------------------------------------------------------
 local function setMenuVisible(visible)
 	MainFrame.Visible = visible
-	OpenButton.Visible = not visible -- メニューを開いたらOpenボタンを隠し、閉じたら出す
+	OpenButton.Visible = not visible
+	if visible then
+		BlacklistPage.Visible = true -- メニューを開いたときは自動的に⚙️タブを最初に見せる
+	else
+		BlacklistPage.Visible = false
+	end
 end
 
 CloseButton.MouseButton1Click:Connect(function() setMenuVisible(false) end)
@@ -131,7 +194,7 @@ game:GetService("UserInputService").InputBegan:Connect(function(input, processed
 end)
 
 ----------------------------------------------------------------
--- 👥 Draw List (Crash-proof version)
+-- 👥 Draw Function (100% Crash-Proof)
 ----------------------------------------------------------------
 local function drawList()
 	for _, child in ipairs(ScrollingFrame:GetChildren()) do
@@ -142,8 +205,8 @@ local function drawList()
 
 	local function addPlayerEntry(player, status)
 		local entry = Instance.new("Frame", ScrollingFrame)
-		entry.Size = UDim2.new(1, -8, 0, 48)
-		entry.BackgroundColor3 = Color3.fromRGB(28, 28, 35)
+		entry.Size = UDim2.new(1, -5, 0, 38)
+		entry.BackgroundColor3 = Color3.fromRGB(24, 24, 30)
 		entry.BorderSizePixel = 0
 		entry.LayoutOrder = order
 		order = order + 1
@@ -153,15 +216,15 @@ local function drawList()
 
 		local stroke = Instance.new("UIStroke", entry)
 		stroke.Color = Color3.fromRGB(0, 120, 255)
-		stroke.Thickness = 2
+		stroke.Thickness = 1.5
 		stroke.Enabled = false
 
 		local nameLabel = Instance.new("TextLabel", entry)
-		nameLabel.Size = UDim2.new(1, -15, 1, 0)
-		nameLabel.Position = UDim2.new(0, 15, 0, 0)
+		nameLabel.Size = UDim2.new(1, -20, 1, 0)
+		nameLabel.Position = UDim2.new(0, 12, 0, 0)
 		nameLabel.BackgroundTransparency = 1
 		nameLabel.TextXAlignment = Enum.TextXAlignment.Left
-		nameLabel.TextSize = 14
+		nameLabel.TextSize = 13
 		nameLabel.Font = Enum.Font.SourceSansBold
 		nameLabel.Text = player.Name
 		
@@ -171,7 +234,7 @@ local function drawList()
 		elseif status == "Blacklist" then
 			nameLabel.TextColor3 = Color3.fromRGB(255, 60, 60)
 		else
-			nameLabel.TextColor3 = Color3.fromRGB(160, 160, 170)
+			nameLabel.TextColor3 = Color3.fromRGB(150, 150, 160)
 		end
 		
 		if player ~= LocalPlayer then
@@ -189,19 +252,13 @@ local function drawList()
 		end
 	end
 	
-	-- 一番上に自分を表示
 	addPlayerEntry(LocalPlayer, "Me")
 	
-	-- 安全に他の全プレイヤーをロード
 	local allPlayers = Players:GetPlayers()
 	for i = 1, #allPlayers do
 		local p = allPlayers[i]
 		if p and p ~= LocalPlayer and p.Parent then
-			if isBlacklisted(p.UserId) then 
-				addPlayerEntry(p, "Blacklist") 
-			else 
-				addPlayerEntry(p, "Normal") 
-			end
+			if isBlacklisted(p.UserId) then addPlayerEntry(p, "Blacklist") else addPlayerEntry(p, "Normal") end
 		end
 	end
 end
@@ -217,9 +274,6 @@ AddButton.MouseButton1Click:Connect(function()
 	end
 end)
 
--- 接続バグを完全に修正した安全なループ監視
 task.spawn(function()
-	while task.wait(2) do
-		pcall(drawList)
-	end
+	while task.wait(2) do pcall(drawList) end
 end)
