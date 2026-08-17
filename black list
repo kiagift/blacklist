@@ -1,199 +1,221 @@
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 
--- すでに同じ画面が開いている場合は、二重起動を防ぐために古い方を削除
+-- 古いGUIを強制消去
 local oldGui = LocalPlayer:WaitForChild("PlayerGui"):FindFirstChild("BL_Gui")
 if oldGui then 
 	oldGui:Destroy() 
 end
 
--- 初期のブラックリストIDリスト（自由に変更してください）
 local BlacklistIds = { 123456, 987654 }
 local selectedPlayer = nil
 
--- 指定したユーザーIDがブラックリストに入っているか確認する関数
 local function isBlacklisted(userId)
 	for _, id in ipairs(BlacklistIds) do
-		if id == userId then
-			return true
-		end
+		if id == userId then return true end
 	end
 	return false
 end
 
 ----------------------------------------------------------------
--- 1. GUIの土台（画面・メインフレーム・開くボタン）をコードで作成
+-- 🧱 カッコいい新UIの作成
 ----------------------------------------------------------------
 local ScreenGui = Instance.new("ScreenGui", LocalPlayer.PlayerGui)
 ScreenGui.Name = "BL_Gui"
 ScreenGui.ResetOnSpawn = false
 
--- スマホ用の「開く」ボタン（最初は非表示にしておきます）
+-- 【新デザイン】スマホ・PC共通の「開く」ボタン（外枠つきで高級感アップ）
 local OpenButton = Instance.new("TextButton", ScreenGui)
-OpenButton.Size = UDim2.new(0, 60, 0, 30)
-OpenButton.Position = UDim2.new(0, 10, 0.5, -15)
+OpenButton.Size = UDim2.new(0, 70, 0, 35)
+OpenButton.Position = UDim2.new(0, 15, 0.5, -17)
 OpenButton.Text = "開く"
 OpenButton.TextSize = 14
+OpenButton.Font = Enum.Font.SourceSansBold
 OpenButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 OpenButton.BackgroundColor3 = Color3.fromRGB(0, 120, 255)
 OpenButton.Visible = false
 
--- メインのメニュー画面
+local OB_Corner = Instance.new("UICorner", OpenButton)
+OB_Corner.CornerRadius = UDim.new(0, 8)
+local OB_Stroke = Instance.new("UIStroke", OpenButton)
+OB_Stroke.Color = Color3.fromRGB(255, 255, 255)
+OB_Stroke.Thickness = 1.5
+
+-- 【新デザイン】メインメニュー（角丸＆サイバーダーク配色）
 local MainFrame = Instance.new("Frame", ScreenGui)
-MainFrame.Size = UDim2.new(0, 300, 0, 440)
-MainFrame.Position = UDim2.new(0.5, -150, 0.5, -220)
-MainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+MainFrame.Size = UDim2.new(0, 310, 0, 450)
+MainFrame.Position = UDim2.new(0.5, -155, 0.5, -225)
+MainFrame.BackgroundColor3 = Color3.fromRGB(17, 17, 22) -- 高級感のある漆黒
 MainFrame.BorderSizePixel = 0
+
+local MF_Corner = Instance.new("UICorner", MainFrame)
+MF_Corner.CornerRadius = UDim.new(0, 12) -- 全体を綺麗に丸くする
 
 -- タイトル
 local TitleLabel = Instance.new("TextLabel", MainFrame)
-TitleLabel.Size = UDim2.new(1, -80, 0, 40)
-TitleLabel.Text = "メンバーリスト"
+TitleLabel.Size = UDim2.new(1, -80, 0, 45)
+TitleLabel.Text = " メンバーリスト"
 TitleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
 TitleLabel.TextSize = 16
 TitleLabel.Font = Enum.Font.SourceSansBold
-TitleLabel.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
-TitleLabel.BorderSizePixel = 0
+TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
+TitleLabel.BackgroundTransparency = 1
 
--- ❌（閉じる）ボタン（白文字に変更・見やすさ重視）
+-- ❌（閉じる）ボタン（白文字太字＆綺麗な角丸）
 local CloseButton = Instance.new("TextButton", MainFrame)
-CloseButton.Size = UDim2.new(0, 40, 0, 40)
-CloseButton.Position = UDim2.new(1, -80, 0, 0)
+CloseButton.Size = UDim2.new(0, 35, 0, 35)
+CloseButton.Position = UDim2.new(1, -75, 0, 5)
 CloseButton.Text = "❌"
-CloseButton.TextSize = 16
-CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255) -- 白文字に変更！
-CloseButton.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+CloseButton.TextSize = 14
+CloseButton.Font = Enum.Font.SourceSansBold
+CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255) -- 完璧な白文字
+CloseButton.BackgroundColor3 = Color3.fromRGB(220, 60, 60)
 CloseButton.BorderSizePixel = 0
+
+local CB_Corner = Instance.new("UICorner", CloseButton)
+CB_Corner.CornerRadius = UDim.new(0, 8)
 
 -- ⚙️（設定）ボタン
 local SettingsButton = Instance.new("TextButton", MainFrame)
-SettingsButton.Size = UDim2.new(0, 40, 0, 40)
-SettingsButton.Position = UDim2.new(1, -40, 0, 0)
+SettingsButton.Size = UDim2.new(0, 35, 0, 35)
+SettingsButton.Position = UDim2.new(1, -40, 0, 5)
 SettingsButton.Text = "⚙️"
-SettingsButton.TextSize = 16
-SettingsButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-SettingsButton.BackgroundColor3 = Color3.fromRGB(55, 55, 55)
+SettingsButton.TextSize = 14
+SettingsButton.BackgroundColor3 = Color3.fromRGB(45, 45, 55)
 SettingsButton.BorderSizePixel = 0
 
--- プレイヤーリストのスクロール枠
+local SB_Corner = Instance.new("UICorner", SettingsButton)
+SB_Corner.CornerRadius = UDim.new(0, 8)
+
+-- リスト枠
 local ScrollingFrame = Instance.new("ScrollingFrame", MainFrame)
-ScrollingFrame.Size = UDim2.new(1, -10, 1, -130)
-ScrollingFrame.Position = UDim2.new(0, 5, 0, 45)
+ScrollingFrame.Size = UDim2.new(1, -16, 1, -145)
+ScrollingFrame.Position = UDim2.new(0, 8, 0, 55)
 ScrollingFrame.BackgroundTransparency = 1
 ScrollingFrame.BorderSizePixel = 0
 ScrollingFrame.ScrollBarThickness = 4
 
 local ListLayout = Instance.new("UIListLayout", ScrollingFrame)
-ListLayout.Padding = UDim.new(0, 5)
+ListLayout.Padding = UDim.new(0, 6)
 
--- ⌨️ 文字入力欄
+-- ⌨️ 入力欄（角丸）
 local TextBox = Instance.new("TextBox", MainFrame)
-TextBox.Size = UDim2.new(1, -10, 0, 30)
-TextBox.Position = UDim2.new(0, 5, 1, -75)
+TextBox.Size = UDim2.new(1, -16, 0, 35)
+TextBox.Position = UDim2.new(0, 8, 1, -85)
 TextBox.Text = ""
-TextBox.PlaceholderText = "ここに文字を入力..."
+TextBox.PlaceholderText = " ここに文字を入力..."
 TextBox.TextColor3 = Color3.fromRGB(255, 255, 255)
-TextBox.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+TextBox.TextSize = 14
+TextBox.BackgroundColor3 = Color3.fromRGB(30, 30, 38)
 TextBox.BorderSizePixel = 0
 
--- 🔵 追加ボタン
+local TB_Corner = Instance.new("UICorner", TextBox)
+TB_Corner.CornerRadius = UDim.new(0, 6)
+
+-- 🔵 追加ボタン（パッと映える綺麗な青の角丸）
 local AddButton = Instance.new("TextButton", MainFrame)
-AddButton.Size = UDim2.new(1, -10, 0, 35)
-AddButton.Position = UDim2.new(0, 5, 1, -40)
-AddButton.Text = "追加"
-AddButton.TextSize = 16
+AddButton.Size = UDim2.new(1, -16, 0, 40)
+AddButton.Position = UDim2.new(0, 8, 1, -45)
+AddButton.Text = "確定追加"
+AddButton.TextSize = 15
 AddButton.Font = Enum.Font.SourceSansBold
 AddButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-AddButton.BackgroundColor3 = Color3.fromRGB(0, 120, 255)
+AddButton.BackgroundColor3 = Color3.fromRGB(0, 140, 255)
 AddButton.BorderSizePixel = 0
 
--- ⚙️ 設定ポップアップ
+local AB_Corner = Instance.new("UICorner", AddButton)
+AB_Corner.CornerRadius = UDim.new(0, 8)
+
+-- 設定画面
 local SettingsFrame = Instance.new("Frame", ScreenGui)
-SettingsFrame.Size = UDim2.new(0, 220, 0, 110)
-SettingsFrame.Position = UDim2.new(0.5, -110, 0.5, -55)
-SettingsFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+SettingsFrame.Size = UDim2.new(0, 240, 0, 120)
+SettingsFrame.Position = UDim2.new(0.5, -120, 0.5, -60)
+SettingsFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
 SettingsFrame.Visible = false
+
+local SF_Corner = Instance.new("UICorner", SettingsFrame)
+SF_Corner.CornerRadius = UDim.new(0, 10)
 
 local SettingsText = Instance.new("TextLabel", SettingsFrame)
 SettingsText.Size = UDim2.new(1, 0, 1, 0)
-SettingsText.Text = "[操作説明]\n❌ボタン or Mキー:画面開閉\n①プレイヤーを枠クリック\n②下の入力欄に「C」と入力\n③「追加」ボタンで赤文字化"
+SettingsText.Text = "[操作説明]\n❌ボタン or Mキー:画面開閉\n\n①プレイヤーを枠クリック\n②下の入力欄に「C」と入力\n③「追加」ボタンで赤文字化"
 SettingsText.TextColor3 = Color3.fromRGB(255, 255, 255)
+SettingsText.TextSize = 13
 SettingsText.BackgroundTransparency = 1
 
 ----------------------------------------------------------------
--- 2. ボタンやキーボードの開閉連動処理（バグ修正済み）
+-- ⚙️ 完璧な開閉バグ修正処理
 ----------------------------------------------------------------
--- ❌ボタンを押したとき
-CloseButton.MouseButton1Click:Connect(function()
-	MainFrame.Visible = false
-	OpenButton.Visible = true -- スマホ用に「開く」ボタンを出す！
-	SettingsFrame.Visible = false
-end)
+local function setMenuVisible(visible)
+	MainFrame.Visible = visible
+	OpenButton.Visible = not visible -- メニューが消えたら、開くボタンを100%出す
+	if not visible then
+		SettingsFrame.Visible = false
+	end
+end
 
--- 「開く」ボタンを押したとき
-OpenButton.MouseButton1Click:Connect(function()
-	MainFrame.Visible = true
-	OpenButton.Visible = false -- メニューが出たので「開く」ボタンは隠す！
-end)
+CloseButton.MouseButton1Click:Connect(function() setMenuVisible(false) end)
+OpenButton.MouseButton1Click:Connect(function() setMenuVisible(true) end)
+SettingsButton.MouseButton1Click:Connect(function() SettingsFrame.Visible = not SettingsFrame.Visible end)
 
--- ⚙️ボタンを押したとき
-SettingsButton.MouseButton1Click:Connect(function()
-	SettingsFrame.Visible = not SettingsFrame.Visible
-end)
-
--- PC用のMキー開閉
 game:GetService("UserInputService").InputBegan:Connect(function(input, processed)
 	if not processed and input.KeyCode == Enum.KeyCode.M then
-		MainFrame.Visible = not MainFrame.Visible
-		OpenButton.Visible = not MainFrame.Visible
+		setMenuVisible(not MainFrame.Visible)
 	end
 end)
 
 ----------------------------------------------------------------
--- 3. リストの描画処理（起動エラー対策済み）
+-- 👥 リスト描画
 ----------------------------------------------------------------
 local function drawList()
 	for _, child in ipairs(ScrollingFrame:GetChildren()) do
-		if child:IsA("Frame") then 
-			child:Destroy() 
-		end
+		if child:IsA("Frame") then child:Destroy() end
 	end
 
 	local order = 1
 
 	local function addPlayerEntry(player, status)
 		local entry = Instance.new("Frame", ScrollingFrame)
-		entry.Size = UDim2.new(1, -10, 0, 45)
-		entry.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+		entry.Size = UDim2.new(1, -8, 0, 48)
+		entry.BackgroundColor3 = Color3.fromRGB(28, 28, 35)
+		entry.BorderSizePixel = 0
 		entry.LayoutOrder = order
 		order = order + 1
 		
+		local E_Corner = Instance.new("UICorner", entry)
+		E_Corner.CornerRadius = UDim.new(0, 6)
+
 		local stroke = Instance.new("UIStroke", entry)
-		stroke.Color = Color3.fromRGB(255, 255, 255)
+		stroke.Color = Color3.fromRGB(0, 120, 255) -- 選択時は青白く光る
+		stroke.Thickness = 2
 		stroke.Enabled = false
 		
 		local img = Instance.new("ImageLabel", entry)
-		img.Size = UDim2.new(0, 35, 0, 35)
-		img.Position = UDim2.new(0, 5, 0, 5)
+		img.Size = UDim2.new(0, 36, 0, 36)
+		img.Position = UDim2.new(0, 6, 0, 6)
 		img.BackgroundTransparency = 1
 		
+		local I_Corner = Instance.new("UICorner", img)
+		I_Corner.CornerRadius = UDim.new(0, 18) -- アバターを丸型に切り抜き
+
 		local nameLabel = Instance.new("TextLabel", entry)
-		nameLabel.Size = UDim2.new(1, -50, 1, 0)
-		nameLabel.Position = UDim2.new(0, 45, 0, 0)
+		nameLabel.Size = UDim2.new(1, -55, 1, 0)
+		nameLabel.Position = UDim2.new(0, 50, 0, 0)
 		nameLabel.BackgroundTransparency = 1
 		nameLabel.TextXAlignment = Enum.TextXAlignment.Left
+		nameLabel.TextSize = 14
+		nameLabel.Font = Enum.Font.SourceSansBold
 		nameLabel.Text = player.Name
 		
 		if status == "Me" then
-			nameLabel.Text = player.Name .. "(あなた)"
+			nameLabel.Text = player.Name .. " (あなた)"
 			nameLabel.TextColor3 = Color3.fromRGB(0, 220, 255)
 		elseif status == "Blacklist" then
-			nameLabel.TextColor3 = Color3.fromRGB(255, 50, 50)
+			nameLabel.TextColor3 = Color3.fromRGB(255, 60, 60)
 		else
-			nameLabel.TextColor3 = Color3.fromRGB(150, 150, 150)
+			nameLabel.TextColor3 = Color3.fromRGB(160, 160, 170)
 		end
 		
-		-- アバター読み込みが遅れても、画面の起動を邪魔しないように安全に隔離処理
 		task.spawn(function()
 			pcall(function() 
 				img.Image = Players:GetUserThumbnailAsync(player.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size100x100) 
@@ -207,9 +229,7 @@ local function drawList()
 			selectBtn.Text = ""
 			selectBtn.MouseButton1Click:Connect(function()
 				for _, v in ipairs(ScrollingFrame:GetChildren()) do
-					if v:IsA("Frame") and v:FindFirstChild("UIStroke") then 
-						v.UIStroke.Enabled = false 
-					end
+					if v:IsA("Frame") and v:FindFirstChild("UIStroke") then v.UIStroke.Enabled = false end
 				end
 				stroke.Enabled = true
 				selectedPlayer = player
@@ -217,26 +237,16 @@ local function drawList()
 		end
 	end
 	
-	-- 自分を追加
 	addPlayerEntry(LocalPlayer, "Me")
-	-- 他のプレイヤーを追加
 	for _, player in ipairs(Players:GetPlayers()) do
 		if player ~= LocalPlayer then 
-			if isBlacklisted(player.UserId) then
-				addPlayerEntry(player, "Blacklist")
-			else
-				addPlayerEntry(player, "Normal")
-			end
+			if isBlacklisted(player.UserId) then addPlayerEntry(player, "Blacklist") else addPlayerEntry(player, "Normal") end
 		end
 	end
 end
 
--- リストを描画
 drawList()
 
-----------------------------------------------------------------
--- 4. 追加確定処理とサーバー増減監視
-----------------------------------------------------------------
 AddButton.MouseButton1Click:Connect(function()
 	if selectedPlayer and (TextBox.Text == "C" or TextBox.Text == "c") then
 		table.insert(BlacklistIds, selectedPlayer.UserId)
