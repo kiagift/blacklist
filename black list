@@ -1,3 +1,8 @@
+-- 【超重要修正】ゲームの読み込みが完全に終わるまで、ここでスクリプトを一時停止して待機
+if not game:IsLoaded() then
+	game.Loaded:Wait()
+end
+
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 local UserInputService = game:GetService("UserInputService")
@@ -18,25 +23,20 @@ local function isBlacklisted(userId)
 end
 
 ----------------------------------------------------------------
--- 🔊 【新機能】KJボイス全自動ロード再生システム
+-- 🔊 KJボイス全自動ロード再生システム（待機処理つき）
 ----------------------------------------------------------------
 task.spawn(function()
 	local kjSound = Instance.new("Sound")
-	-- KJの「もう遊びは終わりだ」の公式オーディオアセットIDを設定
 	kjSound.SoundId = "rbxassetid://18434079822" 
-	kjSound.Volume = 3 -- しっかり聞こえる大音量設定
+	kjSound.Volume = 3
 	kjSound.PlayOnRemove = false
-	
-	-- 3D音源ではなく、プレイヤーの画面全体にステレオで響かせる設定
 	kjSound.Parent = SoundService
 	
-	-- ロード直後に即座に再生
 	if not kjSound.IsLoaded then
 		kjSound.Loaded:Wait()
 	end
 	kjSound:Play()
 	
-	-- 再生が終わったら自動でお掃除
 	kjSound.Ended:Connect(function()
 		kjSound:Destroy()
 	end)
