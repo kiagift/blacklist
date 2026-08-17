@@ -39,10 +39,10 @@ local OB_Stroke = Instance.new("UIStroke", OpenButton)
 OB_Stroke.Color = Color3.fromRGB(255, 255, 255)
 OB_Stroke.Thickness = 1.5
 
--- 📱 Main Window Frame (Cyber Dark Style)
+-- 📱 Main Window Frame (Wider layout like the image)
 local MainFrame = Instance.new("Frame", ScreenGui)
-MainFrame.Size = UDim2.new(0, 420, 0, 320)
-MainFrame.Position = UDim2.new(0.5, -210, 0.5, -160)
+MainFrame.Size = UDim2.new(0, 540, 0, 380)
+MainFrame.Position = UDim2.new(0.5, -260, 0.5, -180)
 MainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 18)
 MainFrame.BorderSizePixel = 0
 MainFrame.Visible = false
@@ -51,20 +51,20 @@ local MF_Corner = Instance.new("UICorner", MainFrame)
 MF_Corner.CornerRadius = UDim.new(0, 10)
 
 ----------------------------------------------------------------
--- 🗂️ Left Sidebar Layout (Vertical Tabs)
+-- 🗂️ Left Sidebar Layout (With the Sun Icon ☀️)
 ----------------------------------------------------------------
 local Sidebar = Instance.new("Frame", MainFrame)
-Sidebar.Size = UDim2.new(0, 55, 1, 0)
+Sidebar.Size = UDim2.new(0, 65, 1, 0)
 Sidebar.BackgroundColor3 = Color3.fromRGB(11, 11, 13)
 Sidebar.BorderSizePixel = 0
 
 local SB_Corner = Instance.new("UICorner", Sidebar)
 SB_Corner.CornerRadius = UDim.new(0, 10)
 
--- 右側のコンテンツエリア（タブ切り替え用）
+-- Content Frame for Switching Tabs
 local ContentFrame = Instance.new("Frame", MainFrame)
-ContentFrame.Size = UDim2.new(1, -55, 1, 0)
-ContentFrame.Position = UDim2.new(0, 55, 0, 0)
+ContentFrame.Size = UDim2.new(1, -65, 1, 0)
+ContentFrame.Position = UDim2.new(0, 65, 0, 0)
 ContentFrame.BackgroundTransparency = 1
 
 -- ❌ 【右上配置】Close Button
@@ -83,90 +83,183 @@ local CB_Corner = Instance.new("UICorner", CloseButton)
 CB_Corner.CornerRadius = UDim.new(0, 6)
 
 ----------------------------------------------------------------
--- ⚙️ Blacklist Tab Content (Only visible when ⚙️ is clicked)
+-- ☀️ Sun Tab Content (Perfect 2-Box System with Double Scroll)
 ----------------------------------------------------------------
-local BlacklistPage = Instance.new("Frame", ContentFrame)
-BlacklistPage.Size = UDim2.new(1, 0, 1, 0)
-BlacklistPage.BackgroundTransparency = 1
-BlacklistPage.Visible = false -- 最初は非表示
+local SunPage = Instance.new("Frame", ContentFrame)
+SunPage.Size = UDim2.new(1, 0, 1, 0)
+SunPage.BackgroundTransparency = 1
+SunPage.Visible = false
 
--- Title
-local TitleLabel = Instance.new("TextLabel", BlacklistPage)
-TitleLabel.Size = UDim2.new(1, -45, 0, 40)
-TitleLabel.Position = UDim2.new(0, 15, 0, 5)
-TitleLabel.Text = "Blacklist Manager"
-TitleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-TitleLabel.TextSize = 16
-TitleLabel.Font = Enum.Font.SourceSansBold
-TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
-TitleLabel.BackgroundTransparency = 1
+-- 👥 【左側ボックス】縦に長い大きな Player List 枠
+local LeftBox = Instance.new("Frame", SunPage)
+LeftBox.Size = UDim2.new(0.5, -15, 1, -30)
+LeftBox.Position = UDim2.new(0, 10, 0, 15)
+LeftBox.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
+LeftBox.BorderSizePixel = 0
 
--- Player List Area (Scrollbox)
-local ScrollingFrame = Instance.new("ScrollingFrame", BlacklistPage)
-ScrollingFrame.Size = UDim2.new(1, -30, 1, -115)
-ScrollingFrame.Position = UDim2.new(0, 15, 0, 45)
+local LB_Corner = Instance.new("UICorner", LeftBox)
+LB_Corner.CornerRadius = UDim.new(0, 8)
+
+local LeftTitle = Instance.new("TextLabel", LeftBox)
+LeftTitle.Size = UDim2.new(1, -20, 0, 30)
+LeftTitle.Position = UDim2.new(0, 10, 0, 5)
+LeftTitle.Text = "Player List (Colored models)"
+LeftTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+LeftTitle.TextSize = 13
+LeftTitle.Font = Enum.Font.SourceSansBold
+LeftTitle.TextXAlignment = Enum.TextXAlignment.Left
+LeftTitle.BackgroundTransparency = 1
+
+local ScrollingFrame = Instance.new("ScrollingFrame", LeftBox)
+ScrollingFrame.Size = UDim2.new(1, -10, 1, -45)
+ScrollingFrame.Position = UDim2.new(0, 5, 0, 40)
 ScrollingFrame.BackgroundTransparency = 1
 ScrollingFrame.BorderSizePixel = 0
-ScrollingFrame.ScrollBarThickness = 3
+ScrollingFrame.ScrollBarThickness = 2
 
 local ListLayout = Instance.new("UIListLayout", ScrollingFrame)
 ListLayout.Padding = UDim.new(0, 5)
 
--- ⌨️ Input Box
-local TextBox = Instance.new("TextBox", BlacklistPage)
-TextBox.Size = UDim2.new(1, -130, 0, 35)
-TextBox.Position = UDim2.new(0, 15, 1, -50)
+
+-- 🎛️ 【右側ボックス】Actions / Settings Area（見本画像のリスト構造を完全再現）
+local RightBox = Instance.new("Frame", SunPage)
+RightBox.Size = UDim2.new(0.5, -15, 1, -30) -- 左側と同じサイズに統合
+RightBox.Position = UDim2.new(0.5, 5, 0, 15)
+RightBox.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
+RightBox.BorderSizePixel = 0
+
+local RB_Corner = Instance.new("UICorner", RightBox)
+RB_Corner.CornerRadius = UDim.new(0, 8)
+
+local RightTitle = Instance.new("TextLabel", RightBox)
+RightTitle.Size = UDim2.new(1, -20, 0, 30)
+RightTitle.Position = UDim2.new(0, 10, 0, 5)
+RightTitle.Text = "Effects / Settings"
+RightTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+RightTitle.TextSize = 13
+RightTitle.Font = Enum.Font.SourceSansBold
+RightTitle.TextXAlignment = Enum.TextXAlignment.Left
+RightTitle.BackgroundTransparency = 1
+
+-- 【新設計】右側ボックスの中もスクロールできるようにして、見本通りの長いリストを作成
+local RightScroll = Instance.new("ScrollingFrame", RightBox)
+RightScroll.Size = UDim2.new(1, -10, 1, -45)
+RightScroll.Position = UDim2.new(0, 5, 0, 40)
+RightScroll.BackgroundTransparency = 1
+RightScroll.BorderSizePixel = 0
+RightScroll.ScrollBarThickness = 2
+
+local RightLayout = Instance.new("UIListLayout", RightScroll)
+RightLayout.Padding = UDim.new(0, 8)
+RightLayout.SortOrder = Enum.SortOrder.LayoutOrder
+
+-- 見本画像にある「スライダー要素」を右側スクロール内に配置
+local function createSliderDisplay(text, percent)
+	local container = Instance.new("Frame", RightScroll)
+	container.Size = UDim2.new(1, -10, 0, 35)
+	container.BackgroundTransparency = 1
+	container.LayoutOrder = 1
+	
+	local lbl = Instance.new("TextLabel", container)
+	lbl.Size = UDim2.new(1, 0, 0, 15)
+	lbl.Text = "  " .. text
+	lbl.TextColor3 = Color3.fromRGB(180, 180, 185)
+	lbl.TextSize = 11
+	lbl.TextXAlignment = Enum.TextXAlignment.Left
+	lbl.BackgroundTransparency = 1
+	
+	local bg = Instance.new("Frame", container)
+	bg.Size = UDim2.new(1, -10, 0, 4)
+	bg.Position = UDim2.new(0, 5, 0, 18)
+	bg.BackgroundColor3 = Color3.fromRGB(40, 40, 45)
+	bg.BorderSizePixel = 0
+	
+	local fill = Instance.new("Frame", bg)
+	fill.Size = UDim2.new(percent, 0, 1, 0)
+	fill.BackgroundColor3 = Color3.fromRGB(230, 80, 20) -- Orange color from image
+	
+	local pText = Instance.new("TextLabel", container)
+	pText.Size = UDim2.new(0, 40, 0, 15)
+	pText.Position = UDim2.new(1, -45, 0, 18)
+	pText.Text = tostring(percent * 100) .. "%"
+	pText.TextColor3 = Color3.fromRGB(150, 150, 150)
+	pText.TextSize = 10
+	pText.TextXAlignment = Enum.TextXAlignment.Right
+	pText.BackgroundTransparency = 1
+end
+
+-- スライダーの作成（見本画像のEffectsセクション再現）
+createSliderDisplay("Transparent walls", 1.0)
+createSliderDisplay("Transparent props", 1.0)
+
+-- 見本画像にある「テキストの羅列項目」をダミーの飾りとして配置して雰囲気を再現
+local DummyItems = {"Remove Shake", "Brightness Adjustment", "Remove scope overlay", "Instant scope", "Disable post processing", "Force third person"}
+for i, name in ipairs(DummyItems) do
+	local dItem = Instance.new("TextLabel", RightScroll)
+	dItem.Size = UDim2.new(1, -10, 0, 18)
+	dItem.Text = "  ☐  " .. name
+	dItem.TextColor3 = Color3.fromRGB(140, 140, 145)
+	dItem.TextSize = 12
+	dItem.TextXAlignment = Enum.TextXAlignment.Left
+	dItem.BackgroundTransparency = 1
+	dItem.LayoutOrder = 2
+end
+
+-- ⌨️ Input Box（スクロールの一番下にきれいに配置されます）
+local TextBox = Instance.new("TextBox", RightScroll)
+TextBox.Size = UDim2.new(1, -10, 0, 35)
 TextBox.Text = ""
-TextBox.PlaceholderText = " Type 'C' here..."
+TextBox.PlaceholderText = " Type 'C' here to apply..."
 TextBox.TextColor3 = Color3.fromRGB(255, 255, 255)
 TextBox.TextSize = 13
 TextBox.BackgroundColor3 = Color3.fromRGB(24, 24, 30)
 TextBox.BorderSizePixel = 0
+TextBox.LayoutOrder = 3
 
 local TB_Corner = Instance.new("UICorner", TextBox)
 TB_Corner.CornerRadius = UDim.new(0, 6)
 
--- 🔵 Add Button
-local AddButton = Instance.new("TextButton", BlacklistPage)
-AddButton.Size = UDim2.new(0, 90, 0, 35)
-AddButton.Position = UDim2.new(1, -105, 1, -50)
+-- 🔵 Add Button（スクロールの一番下に配置されます）
+local AddButton = Instance.new("TextButton", RightScroll)
+AddButton.Size = UDim2.new(1, -10, 0, 35)
 AddButton.Text = "Add"
 AddButton.TextSize = 14
 AddButton.Font = Enum.Font.SourceSansBold
 AddButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 AddButton.BackgroundColor3 = Color3.fromRGB(0, 120, 255)
 AddButton.BorderSizePixel = 0
+AddButton.LayoutOrder = 4
 
 local AB_Corner = Instance.new("UICorner", AddButton)
 AB_Corner.CornerRadius = UDim.new(0, 6)
 
+-- 自動で右側のスクロール範囲を伸ばす設定
+RightLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+	RightScroll.CanvasSize = UDim2.new(0, 0, 0, RightLayout.AbsoluteContentSize.Y + 10)
+end)
+
 ----------------------------------------------------------------
--- 🗂️ Sidebar Logic & Tab Switching
+-- 🗂️ Sidebar Icon Setup (Sun Icon ☀️ on top)
 ----------------------------------------------------------------
-local Icons = {"👤", "❌", "⚙️", "💾"}
-local TabFrames = {nil, nil, BlacklistPage, nil} -- 3番目の⚙️マークにブラックリストを連動
+local Icons = {"☀️", "👤", "⚙️", "💾"}
 
 for i, iconText in ipairs(Icons) do
 	local IconBtn = Instance.new("TextButton", Sidebar)
-	IconBtn.Size = UDim2.new(0, 35, 0, 35)
-	IconBtn.Position = UDim2.new(0.5, -17.5, 0, 20 + (i-1) * 50)
+	IconBtn.Size = UDim2.new(0, 40, 0, 40)
+	IconBtn.Position = UDim2.new(0.5, -20, 0, 15 + (i-1) * 55)
 	IconBtn.Text = iconText
-	IconBtn.TextSize = 16
+	IconBtn.TextSize = 20
 	IconBtn.BackgroundTransparency = 1
-	if iconText == "⚙️" then
-		IconBtn.TextColor3 = Color3.fromRGB(255, 255, 255) -- 連動ボタンを目立たせる白
+	if iconText == "☀️" then
+		IconBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 	else
 		IconBtn.TextColor3 = Color3.fromRGB(100, 100, 110)
 	end
 
-	-- ⚙️ボタンをクリックした時の切り替え処理
 	IconBtn.MouseButton1Click:Connect(function()
-		-- 一旦すべてのページを隠す
-		BlacklistPage.Visible = false
-		
-		-- ⚙️（3番目のアイコン）が押されたらブラックリストを表示
-		if iconText == "⚙️" then
-			BlacklistPage.Visible = true
+		SunPage.Visible = false
+		if iconText == "☀️" then
+			SunPage.Visible = true
 		end
 	end)
 end
@@ -178,102 +271,12 @@ local function setMenuVisible(visible)
 	MainFrame.Visible = visible
 	OpenButton.Visible = not visible
 	if visible then
-		BlacklistPage.Visible = true -- メニューを開いたときは自動的に⚙️タブを最初に見せる
+		SunPage.Visible = true
 	else
-		BlacklistPage.Visible = false
+		SunPage.Visible = false
 	end
 end
 
 CloseButton.MouseButton1Click:Connect(function() setMenuVisible(false) end)
 OpenButton.MouseButton1Click:Connect(function() setMenuVisible(true) end)
 
-game:GetService("UserInputService").InputBegan:Connect(function(input, processed)
-	if not processed and input.KeyCode == Enum.KeyCode.M then
-		setMenuVisible(not MainFrame.Visible)
-	end
-end)
-
-----------------------------------------------------------------
--- 👥 Draw Function (100% Crash-Proof)
-----------------------------------------------------------------
-local function drawList()
-	for _, child in ipairs(ScrollingFrame:GetChildren()) do
-		if child:IsA("Frame") then child:Destroy() end
-	end
-
-	local order = 1
-
-	local function addPlayerEntry(player, status)
-		local entry = Instance.new("Frame", ScrollingFrame)
-		entry.Size = UDim2.new(1, -5, 0, 38)
-		entry.BackgroundColor3 = Color3.fromRGB(24, 24, 30)
-		entry.BorderSizePixel = 0
-		entry.LayoutOrder = order
-		order = order + 1
-		
-		local E_Corner = Instance.new("UICorner", entry)
-		E_Corner.CornerRadius = UDim.new(0, 6)
-
-		local stroke = Instance.new("UIStroke", entry)
-		stroke.Color = Color3.fromRGB(0, 120, 255)
-		stroke.Thickness = 1.5
-		stroke.Enabled = false
-
-		local nameLabel = Instance.new("TextLabel", entry)
-		nameLabel.Size = UDim2.new(1, -20, 1, 0)
-		nameLabel.Position = UDim2.new(0, 12, 0, 0)
-		nameLabel.BackgroundTransparency = 1
-		nameLabel.TextXAlignment = Enum.TextXAlignment.Left
-		nameLabel.TextSize = 13
-		nameLabel.Font = Enum.Font.SourceSansBold
-		nameLabel.Text = player.Name
-		
-		if status == "Me" then
-			nameLabel.Text = player.Name .. " (You)"
-			nameLabel.TextColor3 = Color3.fromRGB(0, 220, 255)
-		elseif status == "Blacklist" then
-			nameLabel.TextColor3 = Color3.fromRGB(255, 60, 60)
-		else
-			nameLabel.TextColor3 = Color3.fromRGB(150, 150, 160)
-		end
-		
-		if player ~= LocalPlayer then
-			local selectBtn = Instance.new("TextButton", entry)
-			selectBtn.Size = UDim2.new(1, 0, 1, 0)
-			selectBtn.BackgroundTransparency = 1
-			selectBtn.Text = ""
-			selectBtn.MouseButton1Click:Connect(function()
-				for _, v in ipairs(ScrollingFrame:GetChildren()) do
-					if v:IsA("Frame") and v:FindFirstChild("UIStroke") then v.UIStroke.Enabled = false end
-				end
-				stroke.Enabled = true
-				selectedPlayer = player
-			end)
-		end
-	end
-	
-	addPlayerEntry(LocalPlayer, "Me")
-	
-	local allPlayers = Players:GetPlayers()
-	for i = 1, #allPlayers do
-		local p = allPlayers[i]
-		if p and p ~= LocalPlayer and p.Parent then
-			if isBlacklisted(p.UserId) then addPlayerEntry(p, "Blacklist") else addPlayerEntry(p, "Normal") end
-		end
-	end
-end
-
-drawList()
-
-AddButton.MouseButton1Click:Connect(function()
-	if selectedPlayer and (TextBox.Text == "C" or TextBox.Text == "c") then
-		table.insert(BlacklistIds, selectedPlayer.UserId)
-		drawList()
-		TextBox.Text = ""
-		selectedPlayer = nil
-	end
-end)
-
-task.spawn(function()
-	while task.wait(2) do pcall(drawList) end
-end)
