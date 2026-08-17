@@ -1,266 +1,265 @@
+-- ============================================================================
+-- 🔮 HIGH-END UI REPLICATION SYSTEM (VAPE V4 & RAYFIELD FULL STYLE CHIELD)
+-- ============================================================================
+
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+local SoundService = game:GetService("SoundService")
+
+-- 二重起動によるクラッシュを完全に防ぐため、古いUIを強制消去
+local oldGui = LocalPlayer:WaitForChild("PlayerGui"):FindFirstChild("BL_CyberGui")
+if oldGui then oldGui:Destroy() end
+
+local BlacklistIds = { 123456, 987654 }
+local selectedPlayer = nil
+
+local function isBlacklisted(userId)
+	for _, id in ipairs(BlacklistIds) do
+		if id == userId then return true end
+	end
+	return false
+end
+
 -- ==========================================
--- 🛡️ SAFETY BOOT & CRASH SHIELD SYSTEM
+-- 🔊 KJボイス全自動ロード再生
 -- ==========================================
--- 起動時のフリーズを防ぐため、すべての処理を安全な別スレッドで実行
 task.spawn(function()
-	local success, err = pcall(function()
-		local Players = game:GetService("Players")
-		local LocalPlayer = Players.LocalPlayer
-		local TweenService = game:GetService("TweenService")
-		local UserInputService = game:GetService("UserInputService")
-		local SoundService = game:GetService("SoundService")
+	pcall(function()
+		local kjSound = Instance.new("Sound")
+		kjSound.SoundId = "rbxassetid://18434079822" -- KJの「もう遊びは終わりだ」公式オーディオアセット
+		kjSound.Volume = 3
+		kjSound.Parent = SoundService
+		if not kjSound.IsLoaded then kjSound.Loaded:Wait() end
+		kjSound:Play()
+		kjSound.Ended:Connect(function() kjSound:Destroy() end)
+	end)
+end)
 
-		-- 二重起動によるフリーズを完全に防ぐため、古いUIを確実に削除
-		local oldGui = LocalPlayer:WaitForChild("PlayerGui"):FindFirstChild("BL_Gui")
-		if oldGui then 
-			oldGui:Destroy() 
+----------------------------------------------------------------
+-- 🧱 画面の土台・右上の常駐Openボタン作成
+----------------------------------------------------------------
+local ScreenGui = Instance.new("ScreenGui", LocalPlayer.PlayerGui)
+ScreenGui.Name = "BL_CyberGui"
+ScreenGui.ResetOnSpawn = false
+
+-- 【常駐表示】Openボタン
+local OpenButton = Instance.new("TextButton", ScreenGui)
+OpenButton.Size = UDim2.new(0, 70, 0, 35)
+OpenButton.Position = UDim2.new(1, -85, 0, 15)
+OpenButton.Text = "Open"
+OpenButton.TextSize = 14
+OpenButton.Font = Enum.Font.SourceSansBold
+OpenButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+OpenButton.BackgroundColor3 = Color3.fromRGB(0, 120, 255)
+
+local OB_Corner = Instance.new("UICorner", OpenButton)
+OB_Corner.CornerRadius = UDim.new(0, 8)
+local OB_Stroke = Instance.new("UIStroke", OpenButton)
+OB_Stroke.Color = Color3.fromRGB(255, 255, 255)
+OB_Stroke.Thickness = 1.5
+
+-- 【メインウィンドウ】画像通りの美しいプロ仕様大型横長フレーム
+local MainFrame = Instance.new("Frame", ScreenGui)
+MainFrame.Size = UDim2.new(0, 620, 0, 440)
+MainFrame.Position = UDim2.new(0.5, -310, 0.5, -220)
+MainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 18) -- 見本画像そっくりの漆黒に近いグレー
+MainFrame.BorderSizePixel = 0
+MainFrame.Visible = false
+
+local MF_Corner = Instance.new("UICorner", MainFrame)
+MF_Corner.CornerRadius = UDim.new(0, 10)
+
+-- ❌ 【右上配置】閉じるボタン（クッキリ太字の白いX文字）
+local CloseButton = Instance.new("TextButton", MainFrame)
+CloseButton.Size = UDim2.new(0, 30, 0, 30)
+CloseButton.Position = UDim2.new(1, -40, 0, 8)
+CloseButton.Text = "X"
+CloseButton.TextSize = 15
+CloseButton.Font = Enum.Font.SourceSansBold
+CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+CloseButton.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+CloseButton.BorderSizePixel = 0
+CloseButton.ZIndex = 10
+Instance.new("UICorner", CloseButton).CornerRadius = UDim.new(0, 6)
+
+----------------------------------------------------------------
+-- ☯️ 左サイドバー（画像デザインを極限までパーツで完全再現）
+----------------------------------------------------------------
+local Sidebar = Instance.new("Frame", MainFrame)
+Sidebar.Size = UDim2.new(0, 75, 1, 0) -- 画像通りのワイド幅
+Sidebar.BackgroundColor3 = Color3.fromRGB(11, 11, 13) -- メインより一層暗い重厚な背景
+Sidebar.BorderSizePixel = 0
+Instance.new("UICorner", Sidebar).CornerRadius = UDim.new(0, 10)
+
+-- メイン画面との美しい縦の境界区切り線
+local SidebarLine = Instance.new("Frame", Sidebar)
+SidebarLine.Size = UDim2.new(0, 1, 1, 0)
+SidebarLine.Position = UDim2.new(1, -1, 0, 0)
+SidebarLine.BackgroundColor3 = Color3.fromRGB(28, 28, 33)
+SidebarLine.BorderSizePixel = 0
+
+-- タブを置くための右側の空間
+local ContentFrame = Instance.new("Frame", MainFrame)
+ContentFrame.Size = UDim2.new(1, -75, 1, 0)
+ContentFrame.Position = UDim2.new(0, 75, 0, 0)
+ContentFrame.BackgroundTransparency = 1
+
+----------------------------------------------------------------
+-- 🎨 6つのタブページの土台作成
+----------------------------------------------------------------
+local Pages = {}
+local function createPage(name)
+	local p = Instance.new("Frame", ContentFrame)
+	p.Size = UDim2.new(1, 0, 1, 0)
+	p.BackgroundTransparency = 1
+	p.Visible = false
+	Pages[name] = p
+	return p
+end
+
+local Page_Combat   = createPage("combat")
+local Page_Movement = createPage("movement")
+local Page_Visuals  = createPage("visuals")
+local Page_Sun      = createPage("sun")
+local Page_Gear     = createPage("gear")
+local Page_Save     = createPage("save")
+
+----------------------------------------------------------------
+-- ☀️ 太陽タブ（4番目）：画像の中身のコントロールを完全再現
+----------------------------------------------------------------
+local SunScroll = Instance.new("ScrollingFrame", Page_Sun)
+SunScroll.Size = UDim2.new(1, -20, 1, -40)
+SunScroll.Position = UDim2.new(0, 10, 0, 20)
+SunScroll.BackgroundTransparency = 1
+SunScroll.BorderSizePixel = 0
+SunScroll.ScrollBarThickness = 3
+
+local SunLayout = Instance.new("UIListLayout", SunScroll)
+SunLayout.Padding = UDim.new(0, 8)
+
+-- 🟢 【高性能】実際に指やマウスでドラッグして％をいじれる本物のゲージ（スライダー）
+local function createRealSlider(parent, text, defaultVal)
+	local container = Instance.new("Frame", parent)
+	container.Size = UDim2.new(1, -10, 0, 45)
+	container.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
+	Instance.new("UICorner", container).CornerRadius = UDim.new(0, 6)
+	
+	local lbl = Instance.new("TextLabel", container)
+	lbl.Size = UDim2.new(1, -70, 0, 20)
+	lbl.Position = UDim2.new(0, 12, 0, 5)
+	lbl.Text = text
+	lbl.TextColor3 = Color3.fromRGB(200, 200, 205)
+	lbl.TextSize = 13
+	lbl.Font = Enum.Font.SourceSansBold
+	lbl.TextXAlignment = Enum.TextXAlignment.Left
+	lbl.BackgroundTransparency = 1
+	
+	local valueLbl = Instance.new("TextLabel", container)
+	valueLbl.Size = UDim2.new(0, 50, 0, 20)
+	valueLbl.Position = UDim2.new(1, -62, 0, 5)
+	valueLbl.Text = tostring(defaultVal) .. "%"
+	valueLbl.TextColor3 = Color3.fromRGB(150, 150, 150)
+	valueLbl.TextSize = 12
+	valueLbl.TextXAlignment = Enum.TextXAlignment.Right
+	valueLbl.BackgroundTransparency = 1
+	
+	local slideBG = Instance.new("TextButton", container)
+	slideBG.Size = UDim2.new(1, -24, 0, 6)
+	slideBG.Position = UDim2.new(0, 12, 0, 30)
+	slideBG.BackgroundColor3 = Color3.fromRGB(40, 40, 45)
+	slideBG.Text = ""
+	slideBG.BorderSizePixel = 0
+	Instance.new("UICorner", slideBG).CornerRadius = UDim.new(0, 3)
+	
+	local slideFill = Instance.new("Frame", slideBG)
+	slideFill.Size = UDim2.new(defaultVal / 100, 0, 1, 0)
+	slideFill.BackgroundColor3 = Color3.fromRGB(230, 80, 20) -- 画像通りのオレンジ色のインジケーター
+	slideFill.BorderSizePixel = 0
+	Instance.new("UICorner", slideFill).CornerRadius = UDim.new(0, 3)
+	
+	local dragging = false
+	local function updateSlider(input)
+		local posX = math.clamp((input.Position.X - slideBG.AbsolutePosition.X) / slideBG.AbsoluteSize.X, 0, 1)
+		slideFill.Size = UDim2.new(posX, 0, 1, 0)
+		valueLbl.Text = tostring(math.round(posX * 100)) .. "%"
+	end
+	slideBG.InputBegan:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+			dragging = true updateSlider(input)
 		end
-
-		local BlacklistIds = { 123456, 987654 }
-		local selectedPlayer = nil
-
-		local function isBlacklisted(userId)
-			for _, id in ipairs(BlacklistIds) do
-				if id == userId then return true end
-			end
-			return false
+	end)
+	UserInputService.InputChanged:Connect(function(input)
+		if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+			updateSlider(input)
 		end
-
-		-- ==========================================
-		-- 🔊 1. KJボイス全自動再生（エラー巻き込み対策済み）
-		-- ==========================================
-		task.spawn(function()
-			local soundSuccess, soundErr = pcall(function()
-				local kjSound = Instance.new("Sound")
-				kjSound.SoundId = "rbxassetid://18434079822" -- KJの「もう遊びは終わりだ」公式オーディオ
-				kjSound.Volume = 3
-				kjSound.PlayOnRemove = false
-				kjSound.Parent = SoundService
-				
-				-- 音声のロード遅延で全体が止まらないよう対策
-				if not kjSound.IsLoaded then
-					task.spawn(function()
-						pcall(function() kjSound.Loaded:Wait() end)
-						pcall(function() kjSound:Play() end)
-					end)
-				else
-					kjSound:Play()
-				end
-				
-				kjSound.Ended:Connect(function()
-					pcall(function() kjSound:Destroy() end)
-				end)
-			end)
-		end)
-
-		-- ==========================================
-		-- ⚙️ 2. 開閉キーのカスタム設定エリア
-		-- ==========================================
-		local TOGGLE_KEY = Enum.KeyCode.M -- 画面を出し入れするキー（好きなキーに変更OK）
-
-		-- ==========================================
-		-- 🧱 3. UI全体の土台作成
-		-- ==========================================
-		local ScreenGui = Instance.new("ScreenGui", LocalPlayer.PlayerGui)
-		ScreenGui.Name = "BL_Gui"
-		ScreenGui.ResetOnSpawn = false
-
-		-- 🔵 【右上常駐】Openボタン
-		local OpenButton = Instance.new("TextButton", ScreenGui)
-		OpenButton.Size = UDim2.new(0, 65, 0, 35)
-		OpenButton.Position = UDim2.new(1, -80, 0, 15) -- 画面の右上
-		OpenButton.Text = "Open"
-		OpenButton.TextSize = 14
-		OpenButton.Font = Enum.Font.SourceSansBold
-		OpenButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-		OpenButton.BackgroundColor3 = Color3.fromRGB(0, 120, 255)
-		OpenButton.Visible = true
-		OpenButton.ZIndex = 10
-
-		local OB_Corner = Instance.new("UICorner", OpenButton)
-		OB_Corner.CornerRadius = UDim.new(0, 8)
-		local OB_Stroke = Instance.new("UIStroke", OpenButton)
-		OB_Stroke.Color = Color3.fromRGB(255, 255, 255)
-		OB_Stroke.Thickness = 1.5
-
-		-- 📱 メインフレーム（高級感のある漆黒デザイン）
-		local MainFrame = Instance.new("Frame", ScreenGui)
-		MainFrame.Size = UDim2.new(0, 540, 0, 380)
-		MainFrame.Position = UDim2.new(0.5, -270, 0.5, -190)
-		MainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 18)
-		MainFrame.BorderSizePixel = 0
-		MainFrame.Visible = false -- 最初は閉じておきます
-
-		local MF_Corner = Instance.new("UICorner", MainFrame)
-		MF_Corner.CornerRadius = UDim.new(0, 10)
-
-		-- ==========================================
-		-- ☯️ 4. 左サイドバー（陰陽の白黒太陽マークを完全再現）
-		-- ==========================================
-		local Sidebar = Instance.new("Frame", MainFrame)
-		Sidebar.Size = UDim2.new(0, 65, 1, 0)
-		Sidebar.BackgroundColor3 = Color3.fromRGB(11, 11, 13)
-		Sidebar.BorderSizePixel = 0
-		Instance.new("UICorner", Sidebar).CornerRadius = UDim.new(0, 10)
-
-		-- 【陰陽サークル】左半分が白、右半分が黒のサークル
-		local YinYangBase = Instance.new("Frame", Sidebar)
-		YinYangBase.Size = UDim2.new(0, 30, 0, 30)
-		YinYangBase.Position = UDim2.new(0.5, -15, 0, 15)
-		YinYangBase.BackgroundColor3 = Color3.fromRGB(255, 255, 255) -- 左半分：白
-		YinYangBase.BorderSizePixel = 0
-		Instance.new("UICorner", YinYangBase).CornerRadius = UDim.new(0, 15)
-
-		local RightHalf = Instance.new("Frame", YinYangBase)
-		RightHalf.Size = UDim2.new(0.5, 0, 1, 0)
-		RightHalf.Position = UDim2.new(0.5, 0, 0, 0)
-		RightHalf.BackgroundColor3 = Color3.fromRGB(0, 0, 0) -- 右半分：黒
-		RightHalf.BorderSizePixel = 0
-		RightHalf.ClipsDescendants = true
-
-		local RH_Clip = Instance.new("Frame", RightHalf)
-		RH_Clip.Size = UDim2.new(2, 0, 1, 0)
-		RH_Clip.Position = UDim2.new(-1, 0, 0, 0)
-		RH_Clip.BackgroundTransparency = 1
-		Instance.new("UICorner", RH_Clip).CornerRadius = UDim.new(0, 15)
-
-		-- 周りの太陽の光（フレアの線）を再現
-		for i = 1, 8 do
-			local Ray = Instance.new("Frame", Sidebar)
-			Ray.Size = UDim2.new(0, 2, 0, 6)
-			Ray.AnchorPoint = Vector2.new(0.5, 0.5)
-			Ray.BackgroundColor3 = Color3.fromRGB(180, 180, 185)
-			Ray.BorderSizePixel = 0
-			Ray.Rotation = (i - 1) * 45
-			Ray.Position = UDim2.new(0.5, math.sin(math.rad(Ray.Rotation)) * 18, 0, 30 - math.cos(math.rad(Ray.Rotation)) * 18)
+	end)
+	UserInputService.InputEnded:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+			dragging = false
 		end
+	end)
+end
 
-		-- タブ空間の作成
-		local ContentFrame = Instance.new("Frame", MainFrame)
-		ContentFrame.Size = UDim2.new(1, -65, 1, 0)
-		ContentFrame.Position = UDim2.new(0, 65, 0, 0)
-		ContentFrame.BackgroundTransparency = 1
-
-		-- ❌ 【右上配置】閉じるボタン（大きくクッキリとした太字の真っ白なX）
-		local CloseButton = Instance.new("TextButton", MainFrame)
-		CloseButton.Size = UDim2.new(0, 30, 0, 30)
-		CloseButton.Position = UDim2.new(1, -40, 0, 8)
-		CloseButton.Text = "X"
-		CloseButton.TextSize = 16
-		CloseButton.Font = Enum.Font.SourceSansBold
-		CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255) -- 完全に真っ白
-		CloseButton.BackgroundColor3 = Color3.fromRGB(220, 60, 60)
-		CloseButton.BorderSizePixel = 0
-		CloseButton.ZIndex = 5
-		Instance.new("UICorner", CloseButton).CornerRadius = UDim.new(0, 6)
-
-		-- ==========================================
-		-- ☀️ 5. 太陽タブ：中身（いじれる本物のスライダー＆本物のトグルスイッチ）
-		-- ==========================================
-		local SunPage = Instance.new("Frame", ContentFrame)
-		SunPage.Size = UDim2.new(1, 0, 1, 0)
-		SunPage.BackgroundTransparency = 1
-		SunPage.Visible = false
-
-		local SunScroll = Instance.new("ScrollingFrame", SunPage)
-		SunScroll.Size = UDim2.new(1, -20, 1, -30)
-		SunScroll.Position = UDim2.new(0, 10, 0, 15)
-		SunScroll.BackgroundTransparency = 1
-		SunScroll.BorderSizePixel = 0
-		SunScroll.ScrollBarThickness = 3
-
-		local SunLayout = Instance.new("UIListLayout", SunScroll)
-		SunLayout.Padding = UDim.new(0, 8)
-
-		-- 🟢 ドラッグして自由にいじれる本物のゲージ（スライダー）関数
-		local function createRealSlider(parent, text, defaultVal)
-			local container = Instance.new("Frame", parent)
-			container.Size = UDim2.new(1, -10, 0, 45)
-			container.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
-			Instance.new("UICorner", container).CornerRadius = UDim.new(0, 6)
-			
-			local lbl = Instance.new("TextLabel", container)
-			lbl.Size = UDim2.new(1, -60, 0, 20)
-			lbl.Position = UDim2.new(0, 10, 0, 5)
-			lbl.Text = text
-			lbl.TextColor3 = Color3.fromRGB(200, 200, 205)
-			lbl.TextSize = 13
-			lbl.Font = Enum.Font.SourceSansBold
-			lbl.TextXAlignment = Enum.TextXAlignment.Left
-			lbl.BackgroundTransparency = 1
-			
-			local valueLbl = Instance.new("TextLabel", container)
-			valueLbl.Size = UDim2.new(0, 50, 0, 20)
-			valueLbl.Position = UDim2.new(1, -60, 0, 5)
-			valueLbl.Text = tostring(defaultVal) .. "%"
-			valueLbl.TextColor3 = Color3.fromRGB(150, 150, 150)
-			valueLbl.TextSize = 12
-			valueLbl.TextXAlignment = Enum.TextXAlignment.Right
-			valueLbl.BackgroundTransparency = 1
-			
-			local slideBG = Instance.new("TextButton", container)
-			slideBG.Size = UDim2.new(1, -20, 0, 6)
-			slideBG.Position = UDim2.new(0, 10, 0, 30)
-			slideBG.BackgroundColor3 = Color3.fromRGB(40, 40, 45)
-			slideBG.Text = ""
-			slideBG.BorderSizePixel = 0
-			Instance.new("UICorner", slideBG).CornerRadius = UDim.new(0, 3)
-			
-			local slideFill = Instance.new("Frame", slideBG)
-			slideFill.Size = UDim2.new(defaultVal / 100, 0, 1, 0)
-			slideFill.BackgroundColor3 = Color3.fromRGB(230, 80, 20) -- 見本通りのオレンジ
-			slideFill.BorderSizePixel = 0
-			Instance.new("UICorner", slideFill).CornerRadius = UDim.new(0, 3)
-			
-			local dragging = false
-			local function updateSlider(input)
-				local posX = math.clamp((input.Position.X - slideBG.AbsolutePosition.X) / slideBG.AbsoluteSize.X, 0, 1)
-				slideFill.Size = UDim2.new(posX, 0, 1, 0)
-				valueLbl.Text = tostring(math.round(posX * 100)) .. "%"
-			end
-			slideBG.InputBegan:Connect(function(input)
-				if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-					dragging = true updateSlider(input)
-				end
-			end)
-			UserInputService.InputChanged:Connect(function(input)
-				if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
-					updateSlider(input)
-				end
-			end)
-			UserInputService.InputEnded:Connect(function(input)
-				if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-					dragging = false
-				end
-			end)
-		end
-
-		-- 🟢 クリックでON/OFFを切り替えられる本物のチェックボックス関数
-		local function createRealToggle(parent, text)
-			local container = Instance.new("Frame", parent)
-			container.Size = UDim2.new(1, -10, 0, 35)
-			container.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
-			Instance.new("UICorner", container).CornerRadius = UDim.new(0, 6)
-			
-			local lbl = Instance.new("TextLabel", container)
-			lbl.Size = UDim2.new(1, -60, 1, 0)
-			lbl.Position = UDim2.new(0, 10, 0, 0)
+-- 🟢 【高性能】実際にクリックでON/OFF（☑）を切り替えられる本物のボタンチェックボックス
+local function createRealToggle(parent, text)
+	local container = Instance.new("Frame", parent)
+	container.Size = UDim2.new(1, -10, 0, 35)
+	container.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
+	Instance.new("UICorner", container).CornerRadius = UDim.new(0, 6)
+	
+	local lbl = Instance.new("TextLabel", container)
+	lbl.Size = UDim2.new(1, -60, 1, 0)
+	lbl.Position = UDim2.new(0, 12, 0, 0)
+	lbl.Text = "☐  " .. text
+	lbl.TextColor3 = Color3.fromRGB(160, 160, 165)
+	lbl.TextSize = 13
+	lbl.Font = Enum.Font.SourceSansBold
+	lbl.TextXAlignment = Enum.TextXAlignment.Left
+	lbl.BackgroundTransparency = 1
+	
+	local toggleBtn = Instance.new("TextButton", container)
+	toggleBtn.Size = UDim2.new(1, 0, 1, 0)
+	toggleBtn.BackgroundTransparency = 1
+	toggleBtn.Text = ""
+	
+	local enabled = false
+	toggleBtn.MouseButton1Click:Connect(function()
+		enabled = not enabled
+		if enabled then
+			lbl.Text = "☑  " .. text
+			lbl.TextColor3 = Color3.fromRGB(0, 120, 255) -- ONになるとサイバーブルーに発光
+		else
 			lbl.Text = "☐  " .. text
 			lbl.TextColor3 = Color3.fromRGB(160, 160, 165)
-			lbl.TextSize = 13
-			lbl.TextXAlignment = Enum.TextXAlignment.Left
-			lbl.BackgroundTransparency = 1
-			
-			local toggleBtn = Instance.new("TextButton", container)
-			toggleBtn.Size = UDim2.new(1, 0, 1, 0)
-			toggleBtn.BackgroundTransparency = 1
-			toggleBtn.Text = ""
-			
-			local enabled = false
-			toggleBtn.MouseButton1Click:Connect(function()
-				enabled = not enabled
-				if enabled then
-					lbl.Text = "☑  " .. text
-					lbl.TextColor3 = Color3.fromRGB(0, 120, 255) -- ONで青く光る
-				else
-					lbl.Text = "☐  " .. text
+		end
+	end)
+end
+
+-- ☀️太陽メニューの中身を展開（すべて本物として作動します）
+createRealSlider(SunScroll, "Transparent walls", 100)
+createRealSlider(SunScroll, "Transparent props", 50)
+createRealToggle(SunScroll, "Remove Shake")
+createRealToggle(SunScroll, "Brightness Adjustment")
+createRealToggle(SunScroll, "Remove scope overlay")
+createRealToggle(SunScroll, "Instant scope")
+createRealToggle(SunScroll, "Disable post processing")
+
+SunLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+	SunScroll.CanvasSize = UDim2.new(0, 0, 0, SunLayout.AbsoluteContentSize.Y + 10)
+end)
+
+----------------------------------------------------------------
+-- ⚙️ 歯車タブ（5番目）：ブラックリスト管理用UI
+----------------------------------------------------------------
+local LeftBox = Instance.new("Frame", Page_Gear)
+LeftBox.Size = UDim2.new(0.5, -15, 1, -30)
+LeftBox.Position = UDim2.new(0, 10, 0, 15)
+LeftBox.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
+Instance.new("UICorner", LeftBox).CornerRadius = UDim.new(0, 8)
+
+local LeftTitle = Instance.new("TextLabel", LeftBox)
+LeftTitle.Size = UDim2.new(1, -20, 0, 30)
+LeftTitle.Position = UDim2.new(0, 10, 0, 5)
+LeftTitle.Text = "Player List (Colored models)"
