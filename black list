@@ -1,7 +1,6 @@
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 
--- 古いGUIを強制消去
 local oldGui = LocalPlayer:WaitForChild("PlayerGui"):FindFirstChild("BL_Gui")
 if oldGui then 
 	oldGui:Destroy() 
@@ -18,22 +17,22 @@ local function isBlacklisted(userId)
 end
 
 ----------------------------------------------------------------
--- 🧱 カッコいい新UIの作成
+-- 🧱 English UI Creation
 ----------------------------------------------------------------
 local ScreenGui = Instance.new("ScreenGui", LocalPlayer.PlayerGui)
 ScreenGui.Name = "BL_Gui"
 ScreenGui.ResetOnSpawn = false
 
--- 【新デザイン】スマホ・PC共通の「開く」ボタン（外枠つきで高級感アップ）
+-- 【超重要修正】最初から画面に見える状態(Visible = true)で左端に配置
 local OpenButton = Instance.new("TextButton", ScreenGui)
-OpenButton.Size = UDim2.new(0, 70, 0, 35)
+OpenButton.Size = UDim2.new(0, 65, 0, 35)
 OpenButton.Position = UDim2.new(0, 15, 0.5, -17)
-OpenButton.Text = "開く"
+OpenButton.Text = "Open"
 OpenButton.TextSize = 14
 OpenButton.Font = Enum.Font.SourceSansBold
 OpenButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 OpenButton.BackgroundColor3 = Color3.fromRGB(0, 120, 255)
-OpenButton.Visible = false
+OpenButton.Visible = true -- 最初から表示！
 
 local OB_Corner = Instance.new("UICorner", OpenButton)
 OB_Corner.CornerRadius = UDim.new(0, 8)
@@ -41,41 +40,42 @@ local OB_Stroke = Instance.new("UIStroke", OpenButton)
 OB_Stroke.Color = Color3.fromRGB(255, 255, 255)
 OB_Stroke.Thickness = 1.5
 
--- 【新デザイン】メインメニュー（角丸＆サイバーダーク配色）
+-- Main Menu Frame (最初は開くボタンがあるので、こちらは非表示からスタート)
 local MainFrame = Instance.new("Frame", ScreenGui)
 MainFrame.Size = UDim2.new(0, 310, 0, 450)
 MainFrame.Position = UDim2.new(0.5, -155, 0.5, -225)
-MainFrame.BackgroundColor3 = Color3.fromRGB(17, 17, 22) -- 高級感のある漆黒
+MainFrame.BackgroundColor3 = Color3.fromRGB(17, 17, 22)
 MainFrame.BorderSizePixel = 0
+MainFrame.Visible = false -- 最初は閉じておきます
 
 local MF_Corner = Instance.new("UICorner", MainFrame)
-MF_Corner.CornerRadius = UDim.new(0, 12) -- 全体を綺麗に丸くする
+MF_Corner.CornerRadius = UDim.new(0, 12)
 
--- タイトル
+-- Title
 local TitleLabel = Instance.new("TextLabel", MainFrame)
 TitleLabel.Size = UDim2.new(1, -80, 0, 45)
-TitleLabel.Text = " メンバーリスト"
+TitleLabel.Text = " Member List"
 TitleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
 TitleLabel.TextSize = 16
 TitleLabel.Font = Enum.Font.SourceSansBold
 TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
 TitleLabel.BackgroundTransparency = 1
 
--- ❌（閉じる）ボタン（白文字太字＆綺麗な角丸）
+-- ❌ Close Button
 local CloseButton = Instance.new("TextButton", MainFrame)
 CloseButton.Size = UDim2.new(0, 35, 0, 35)
 CloseButton.Position = UDim2.new(1, -75, 0, 5)
-CloseButton.Text = "❌"
-CloseButton.TextSize = 14
+CloseButton.Text = "X"
+CloseButton.TextSize = 16
 CloseButton.Font = Enum.Font.SourceSansBold
-CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255) -- 完璧な白文字
+CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255) -- Pure White
 CloseButton.BackgroundColor3 = Color3.fromRGB(220, 60, 60)
 CloseButton.BorderSizePixel = 0
 
 local CB_Corner = Instance.new("UICorner", CloseButton)
 CB_Corner.CornerRadius = UDim.new(0, 8)
 
--- ⚙️（設定）ボタン
+-- ⚙️ Settings Button
 local SettingsButton = Instance.new("TextButton", MainFrame)
 SettingsButton.Size = UDim2.new(0, 35, 0, 35)
 SettingsButton.Position = UDim2.new(1, -40, 0, 5)
@@ -87,7 +87,7 @@ SettingsButton.BorderSizePixel = 0
 local SB_Corner = Instance.new("UICorner", SettingsButton)
 SB_Corner.CornerRadius = UDim.new(0, 8)
 
--- リスト枠
+-- Player List Area
 local ScrollingFrame = Instance.new("ScrollingFrame", MainFrame)
 ScrollingFrame.Size = UDim2.new(1, -16, 1, -145)
 ScrollingFrame.Position = UDim2.new(0, 8, 0, 55)
@@ -98,12 +98,12 @@ ScrollingFrame.ScrollBarThickness = 4
 local ListLayout = Instance.new("UIListLayout", ScrollingFrame)
 ListLayout.Padding = UDim.new(0, 6)
 
--- ⌨️ 入力欄（角丸）
+-- Input Text Box
 local TextBox = Instance.new("TextBox", MainFrame)
 TextBox.Size = UDim2.new(1, -16, 0, 35)
 TextBox.Position = UDim2.new(0, 8, 1, -85)
 TextBox.Text = ""
-TextBox.PlaceholderText = " ここに文字を入力..."
+TextBox.PlaceholderText = " Type here..."
 TextBox.TextColor3 = Color3.fromRGB(255, 255, 255)
 TextBox.TextSize = 14
 TextBox.BackgroundColor3 = Color3.fromRGB(30, 30, 38)
@@ -112,11 +112,11 @@ TextBox.BorderSizePixel = 0
 local TB_Corner = Instance.new("UICorner", TextBox)
 TB_Corner.CornerRadius = UDim.new(0, 6)
 
--- 🔵 追加ボタン（パッと映える綺麗な青の角丸）
+-- 🔵 Add Button
 local AddButton = Instance.new("TextButton", MainFrame)
 AddButton.Size = UDim2.new(1, -16, 0, 40)
 AddButton.Position = UDim2.new(0, 8, 1, -45)
-AddButton.Text = "確定追加"
+AddButton.Text = "Add"
 AddButton.TextSize = 15
 AddButton.Font = Enum.Font.SourceSansBold
 AddButton.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -126,7 +126,7 @@ AddButton.BorderSizePixel = 0
 local AB_Corner = Instance.new("UICorner", AddButton)
 AB_Corner.CornerRadius = UDim.new(0, 8)
 
--- 設定画面
+-- Settings Menu Frame
 local SettingsFrame = Instance.new("Frame", ScreenGui)
 SettingsFrame.Size = UDim2.new(0, 240, 0, 120)
 SettingsFrame.Position = UDim2.new(0.5, -120, 0.5, -60)
@@ -138,20 +138,19 @@ SF_Corner.CornerRadius = UDim.new(0, 10)
 
 local SettingsText = Instance.new("TextLabel", SettingsFrame)
 SettingsText.Size = UDim2.new(1, 0, 1, 0)
-SettingsText.Text = "[操作説明]\n❌ボタン or Mキー:画面開閉\n\n①プレイヤーを枠クリック\n②下の入力欄に「C」と入力\n③「追加」ボタンで赤文字化"
+SettingsText.Text = "[How to Use]\n'X' Button or M Key : Open/Close\n\n1. Click player frame\n2. Type 'C' in input box\n3. Click 'Add' button"
 SettingsText.TextColor3 = Color3.fromRGB(255, 255, 255)
 SettingsText.TextSize = 13
+SettingsText.Font = Enum.Font.SourceSans
 SettingsText.BackgroundTransparency = 1
 
 ----------------------------------------------------------------
--- ⚙️ 完璧な開閉バグ修正処理
+-- ⚙️ Open/Close Systems (Fixed)
 ----------------------------------------------------------------
 local function setMenuVisible(visible)
 	MainFrame.Visible = visible
-	OpenButton.Visible = not visible -- メニューが消えたら、開くボタンを100%出す
-	if not visible then
-		SettingsFrame.Visible = false
-	end
+	OpenButton.Visible = not visible -- メニューを開いたらOpenボタンを隠し、閉じたら出す
+	if not visible then SettingsFrame.Visible = false end
 end
 
 CloseButton.MouseButton1Click:Connect(function() setMenuVisible(false) end)
@@ -165,7 +164,7 @@ game:GetService("UserInputService").InputBegan:Connect(function(input, processed
 end)
 
 ----------------------------------------------------------------
--- 👥 リスト描画
+-- 👥 Draw List
 ----------------------------------------------------------------
 local function drawList()
 	for _, child in ipairs(ScrollingFrame:GetChildren()) do
@@ -186,7 +185,7 @@ local function drawList()
 		E_Corner.CornerRadius = UDim.new(0, 6)
 
 		local stroke = Instance.new("UIStroke", entry)
-		stroke.Color = Color3.fromRGB(0, 120, 255) -- 選択時は青白く光る
+		stroke.Color = Color3.fromRGB(0, 120, 255)
 		stroke.Thickness = 2
 		stroke.Enabled = false
 		
@@ -196,7 +195,7 @@ local function drawList()
 		img.BackgroundTransparency = 1
 		
 		local I_Corner = Instance.new("UICorner", img)
-		I_Corner.CornerRadius = UDim.new(0, 18) -- アバターを丸型に切り抜き
+		I_Corner.CornerRadius = UDim.new(0, 18)
 
 		local nameLabel = Instance.new("TextLabel", entry)
 		nameLabel.Size = UDim2.new(1, -55, 1, 0)
@@ -208,7 +207,7 @@ local function drawList()
 		nameLabel.Text = player.Name
 		
 		if status == "Me" then
-			nameLabel.Text = player.Name .. " (あなた)"
+			nameLabel.Text = player.Name .. " (You)"
 			nameLabel.TextColor3 = Color3.fromRGB(0, 220, 255)
 		elseif status == "Blacklist" then
 			nameLabel.TextColor3 = Color3.fromRGB(255, 60, 60)
