@@ -1,6 +1,8 @@
--- 【超重要修正】ゲームの読み込みが完全に終わるまで、ここでスクリプトを一時停止して待機
+-- 【最強のフリーズ対策】すでにゲームのロードが終わっている場合は、待たずに一瞬で進むように修正
 if not game:IsLoaded() then
-	game.Loaded:Wait()
+	task.spawn(function()
+		game.Loaded:Wait()
+	end)
 end
 
 local Players = game:GetService("Players")
@@ -23,7 +25,7 @@ local function isBlacklisted(userId)
 end
 
 ----------------------------------------------------------------
--- 🔊 KJボイス全自動ロード再生システム（待機処理つき）
+-- 🔊 KJボイス全自動ロード再生システム
 ----------------------------------------------------------------
 task.spawn(function()
 	local kjSound = Instance.new("Sound")
@@ -33,7 +35,7 @@ task.spawn(function()
 	kjSound.Parent = SoundService
 	
 	if not kjSound.IsLoaded then
-		kjSound.Loaded:Wait()
+		pcall(function() kjSound.Loaded:Wait() end)
 	end
 	kjSound:Play()
 	
@@ -288,4 +290,3 @@ local function drawList()
 	local order = 1
 	
 	local function addPlayerEntry(player, status)
-		if not player or not player:IsA("Player") then return end
