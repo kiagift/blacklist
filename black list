@@ -71,6 +71,7 @@ task.spawn(function()
 		ScreenGui.Name = "BL_CyberGui"
 		ScreenGui.ResetOnSpawn = false
 
+		-- 【常駐表示】Openボタン（【修正】実行時は画面が開いているので、最初は隠しておきます）
 		local OpenButton = Instance.new("TextButton", ScreenGui)
 		OpenButton.Size = UDim2.new(0, 70, 0, 35)
 		OpenButton.Position = UDim2.new(1, -85, 0, 15)
@@ -79,19 +80,21 @@ task.spawn(function()
 		OpenButton.Font = Enum.Font.SourceSansBold
 		OpenButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 		OpenButton.BackgroundColor3 = Color3.fromRGB(0, 120, 255)
+		OpenButton.Visible = false
 
 		local OB_Corner = Instance.new("UICorner", OpenButton)
-		OB_Corner.CornerRadius = UDim.new(0, 8)
+		OpenButton.CornerRadius = UDim.new(0, 8)
 		local OB_Stroke = Instance.new("UIStroke", OpenButton)
 		OB_Stroke.Color = Color3.fromRGB(255, 255, 255)
 		OB_Stroke.Thickness = 1.5
 
+		-- 【メインウィンドウ】
 		local MainFrame = Instance.new("Frame", ScreenGui)
 		MainFrame.Size = UDim2.new(0, 630, 0, 450)
 		MainFrame.Position = UDim2.new(0.5, -315, 0.5, -225)
 		MainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 18)
 		MainFrame.BorderSizePixel = 0
-		MainFrame.Visible = false
+		MainFrame.Visible = true -- 【強力修正】実行ボタンを押した瞬間に最初から100%開いた状態にします！
 		Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 10)
 
 		local CloseButton = Instance.new("TextButton", MainFrame)
@@ -238,7 +241,8 @@ task.spawn(function()
 			slideBG.Position = UDim2.new(0, 12, 0, 30)
 			slideBG.BackgroundColor3 = Color3.fromRGB(40, 40, 45)
 			slideBG.Text = ""
-			Instance.new("UICorner", slideBG).CornerRadius = UDim.new(0, 3)
+			local sBCorner = Instance.new("UICorner", slideBG)
+			sBCorner.CornerRadius = UDim.new(0, 3)
 			
 			local slideFill = Instance.new("Frame", slideBG)
 			slideFill.Size = UDim2.new(defaultVal / 100, 0, 1, 0)
@@ -257,4 +261,3 @@ task.spawn(function()
 			slideBG.InputBegan:Connect(function(input)
 				if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then dragging = true updateSlider(input) end
 			end)
-			UserInputService.InputChanged:Connect(function(input)
