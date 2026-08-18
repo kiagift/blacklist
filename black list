@@ -2,266 +2,259 @@
 -- 🔮 YOKAI.WIN UI SYSTEM (AUTO LOAD & CONFIG & ESP & YOKAI WORLD FULL)
 -- ============================================================================
 
-local Players = game:GetService("Players")
-local LocalPlayer = Players.LocalPlayer
-local Lighting = game:GetService("Lighting")
-local TweenService = game:GetService("TweenService")
-local UserInputService = game:GetService("UserInputService")
-local SoundService = game:GetService("SoundService")
-local HttpService = game:GetService("HttpService")
-
--- 二重起動によるクラッシュを防ぐため古いUIを強制削除
-local oldGui = LocalPlayer:WaitForChild("PlayerGui"):FindFirstChild("BL_CyberGui")
-if oldGui then oldGui:Destroy() end
-
-local BlacklistIds = { 123456, 987654 }
-local selectedPlayer = nil
-
--- Config用の設定データ保存フォルダ
-local CONFIG_FILE = "yokai_win_config.json"
-local currentSettings = {
-	EspEnabled = false,
-	YokaiWorldEnabled = false,
-	AutoLoadEnabled = false,
-	GlowTransparency = 71,
-	ColorStrength = 100,
-	LongRangeGlow = false,
-	OutlineThroughWalls = false
-}
-
-local function isBlacklisted(userId)
-	for _, id in ipairs(BlacklistIds) do if id == userId then return true end end
-	return false
-end
-
--- ============================================================================
--- 🔊 1. 1つ目のボイス終了後、正確に0.5秒待ってから2つ目を流す連結システム
--- ============================================================================
 task.spawn(function()
-	pcall(function()
-		local s1 = Instance.new("Sound")
-		s1.SoundId = "rbxassetid://18434079822" -- 「もう遊びは終わりだ」
-		s1.Volume = 5
-		s1.Parent = SoundService
-		
-		local s2 = Instance.new("Sound")
-		s2.SoundId = "rbxassetid://14032128795" -- 「これですべてを終わらせる」
-		s2.Volume = 5
-		s2.Parent = SoundService
+	local success, bootErr = pcall(function()
+		local Players = game:GetService("Players")
+		local LocalPlayer = Players.LocalPlayer
+		local Lighting = game:GetService("Lighting")
+		local TweenService = game:GetService("TweenService")
+		local UserInputService = game:GetService("UserInputService")
+		local SoundService = game:GetService("SoundService")
+		local HttpService = game:GetService("HttpService")
 
-		if not s1.IsLoaded then s1.Loaded:Wait() end
-		if not s2.IsLoaded then s2.Loaded:Wait() end
+		-- 二重起動によるクラッシュを防ぐため古いUIを強制削除
+		local oldGui = LocalPlayer:WaitForChild("PlayerGui"):FindFirstChild("BL_CyberGui")
+		if oldGui then oldGui:Destroy() end
 
-		s1:Play()
-		s1.Ended:Connect(function()
-			s1:Destroy()
-			task.wait(0.5) -- 0.5秒の絶妙な「ため」
-			s2:Play()
-		end)
-		s2.Ended:Connect(function() s2:Destroy() end)
-	end)
-end)
+		local BlacklistIds = { 123456, 987654 }
+		local selectedPlayer = nil
 
-----------------------------------------------------------------
--- 🧱 2. 画面の土台・右上の常駐Openボタン作成
-----------------------------------------------------------------
-local ScreenGui = Instance.new("ScreenGui", LocalPlayer.PlayerGui)
-ScreenGui.Name = "BL_CyberGui"
-ScreenGui.ResetOnSpawn = false
+		-- Config用の設定データ保存フォルダ
+		local CONFIG_FILE = "yokai_win_config.json"
+		local currentSettings = {
+			EspEnabled = false,
+			YokaiWorldEnabled = false,
+			AutoLoadEnabled = false,
+			GlowTransparency = 71,
+			ColorStrength = 100,
+			LongRangeGlow = false,
+			OutlineThroughWalls = false
+		}
 
-local OpenButton = Instance.new("TextButton", ScreenGui)
-OpenButton.Size = UDim2.new(0, 70, 0, 35)
-OpenButton.Position = UDim2.new(1, -85, 0, 15)
-OpenButton.Text = "Open"
-OpenButton.TextSize = 14
-OpenButton.Font = Enum.Font.SourceSansBold
-OpenButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-OpenButton.BackgroundColor3 = Color3.fromRGB(0, 120, 255)
+		local function isBlacklisted(userId)
+			for _, id in ipairs(BlacklistIds) do if id == userId then return true end end
+			return false
+		end
 
-local OB_Corner = Instance.new("UICorner", OpenButton)
-OB_Corner.CornerRadius = UDim.new(0, 8)
-local OB_Stroke = Instance.new("UIStroke", OpenButton)
-OB_Stroke.Color = Color3.fromRGB(255, 255, 255)
-OB_Stroke.Thickness = 1.5
-
-local MainFrame = Instance.new("Frame", ScreenGui)
-MainFrame.Size = UDim2.new(0, 630, 0, 450)
-MainFrame.Position = UDim2.new(0.5, -315, 0.5, -225)
-MainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 18)
-MainFrame.BorderSizePixel = 0
-MainFrame.Visible = false
-Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 10)
-
-local CloseButton = Instance.new("TextButton", MainFrame)
-CloseButton.Size = UDim2.new(0, 30, 0, 30)
-CloseButton.Position = UDim2.new(1, -40, 0, 8)
-CloseButton.Text = "X"
-CloseButton.TextSize = 15
-CloseButton.Font = Enum.Font.SourceSansBold
-CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-CloseButton.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
-CloseButton.ZIndex = 10
-Instance.new("UICorner", CloseButton).CornerRadius = UDim.new(0, 6)
-
-----------------------------------------------------------------
--- ☯️ 3. 左サイドバー（yokai.winロゴ ＆ 発光エフェクト再現）
-----------------------------------------------------------------
-local Sidebar = Instance.new("Frame", MainFrame)
-Sidebar.Size = UDim2.new(0, 85, 1, 0)
-Sidebar.BackgroundColor3 = Color3.fromRGB(11, 11, 13)
-Instance.new("UICorner", Sidebar).CornerRadius = UDim.new(0, 10)
-
-local SidebarLine = Instance.new("Frame", Sidebar)
-SidebarLine.Size = UDim2.new(0, 1, 1, 0)
-SidebarLine.Position = UDim2.new(1, -1, 0, 0)
-SidebarLine.BackgroundColor3 = Color3.fromRGB(28, 28, 33)
-
-local ContentFrame = Instance.new("Frame", MainFrame)
-ContentFrame.Size = UDim2.new(1, -85, 1, 0)
-ContentFrame.Position = UDim2.new(0, 85, 0, 0)
-ContentFrame.BackgroundTransparency = 1
-
-local Pages = {}
-local function createPage(name)
-	local p = Instance.new("Frame", ContentFrame)
-	p.Size = UDim2.new(1, 0, 1, 0)
-	p.BackgroundTransparency = 1
-	p.Visible = false
-	Pages[name] = p
-	return p
-end
-
-local Page_Combat   = createPage("combat")
-local Page_Movement = createPage("movement")
-local Page_Visuals  = createPage("visuals")
-local Page_Sun      = createPage("sun")
-local Page_Gear     = createPage("gear")
-local Page_Save     = createPage("save")
-
-----------------------------------------------------------------
--- ☀️ 太陽タブ（4番目）：いじれる本物のスライダー＆トグル
-----------------------------------------------------------------
-local SunScroll = Instance.new("ScrollingFrame", Page_Sun)
-SunScroll.Size = UDim2.new(1, -20, 1, -40)
-SunScroll.Position = UDim2.new(0, 10, 0, 20)
-SunScroll.BackgroundTransparency = 1
-SunScroll.BorderSizePixel = 0
-SunScroll.ScrollBarThickness = 3
-local SunLayout = Instance.new("UIListLayout", SunScroll)
-SunLayout.Padding = UDim.new(0, 8)
-
--- 🟢 【高性能】ESPトグルスイッチ（緑発光仕様）
-local EspToggleFrame = Instance.new("Frame", SunScroll)
-EspToggleFrame.Size = UDim2.new(1, -10, 0, 40)
-EspToggleFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
-Instance.new("UICorner", EspToggleFrame).CornerRadius = UDim.new(0, 6)
-
-local EspLbl = Instance.new("TextLabel", EspToggleFrame)
-EspLbl.Size = UDim2.new(1, -60, 1, 0)
-EspLbl.Position = UDim2.new(0, 12, 0, 0)
-EspLbl.Text = "☐  Player ESP (Green Highlight)"
-EspLbl.TextColor3 = Color3.fromRGB(160, 160, 165)
-EspLbl.TextSize = 13
-EspLbl.Font = Enum.Font.SourceSansBold
-EspLbl.TextXAlignment = Enum.TextXAlignment.Left
-EspLbl.BackgroundTransparency = 1
-
-local EspBtn = Instance.new("TextButton", EspToggleFrame)
-EspBtn.Size = UDim2.new(1, 0, 1, 0)
-EspBtn.BackgroundTransparency = 1
-EspBtn.Text = ""
-
--- ESPシステム本体
-local function updateEspVisuals(active)
-	currentSettings.EspEnabled = active
-	if active then
-		EspLbl.Text = "☑  Player ESP (Green Highlight)"
-		EspLbl.TextColor3 = Color3.fromRGB(160, 210, 20)
+		-- ============================================================================
+		-- 🔊 1. 1つ目のボイス終了後、正確に0.5秒待ってから2つ目を流す連結システム
+		-- ============================================================================
 		task.spawn(function()
-			while currentSettings.EspEnabled do
-				for _, p in ipairs(Players:GetPlayers()) do
-					if p ~= LocalPlayer and p.Character then
-						local hl = p.Character:FindFirstChild("YokaiESP")
-						if not hl then
-							hl = Instance.new("Highlight")
-							hl.Name = "YokaiESP"
-							hl.FillColor = Color3.fromRGB(160, 210, 20)
-							hl.FillTransparency = 0.4
-							hl.OutlineColor = Color3.fromRGB(255, 255, 255)
-							hl.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
-							hl.Parent = p.Character
-						end
-					end
-				end
-				task.wait(1)
-			end
+			pcall(function()
+				local s1 = Instance.new("Sound")
+				s1.SoundId = "rbxassetid://18434079822" -- 「もう遊びは終わりだ」
+				s1.Volume = 5
+				s1.Parent = SoundService
+				
+				local s2 = Instance.new("Sound")
+				s2.SoundId = "rbxassetid://14032128795" -- 「これですべてを終わらせる」
+				s2.Volume = 5
+				s2.Parent = SoundService
+
+				if not s1.IsLoaded then s1.Loaded:Wait() end
+				if not s2.IsLoaded then s2.Loaded:Wait() end
+
+				s1:Play()
+				s1.Ended:Connect(function()
+					s1:Destroy()
+					task.wait(0.5) -- 0.5秒の絶妙な「ため」
+					s2:Play()
+				end)
+				s2.Ended:Connect(function() s2:Destroy() end)
+			end)
 		end)
-	else
+
+		----------------------------------------------------------------
+		-- 🧱 2. 画面の土台・右上の常駐Openボタン作成
+		----------------------------------------------------------------
+		local ScreenGui = Instance.new("ScreenGui", LocalPlayer.PlayerGui)
+		ScreenGui.Name = "BL_CyberGui"
+		ScreenGui.ResetOnSpawn = false
+
+		local OpenButton = Instance.new("TextButton", ScreenGui)
+		OpenButton.Size = UDim2.new(0, 70, 0, 35)
+		OpenButton.Position = UDim2.new(1, -85, 0, 15)
+		OpenButton.Text = "Open"
+		OpenButton.TextSize = 14
+		OpenButton.Font = Enum.Font.SourceSansBold
+		OpenButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+		OpenButton.BackgroundColor3 = Color3.fromRGB(0, 120, 255)
+
+		local OB_Corner = Instance.new("UICorner", OpenButton)
+		OB_Corner.CornerRadius = UDim.new(0, 8)
+		local OB_Stroke = Instance.new("UIStroke", OpenButton)
+		OB_Stroke.Color = Color3.fromRGB(255, 255, 255)
+		OB_Stroke.Thickness = 1.5
+
+		local MainFrame = Instance.new("Frame", ScreenGui)
+		MainFrame.Size = UDim2.new(0, 630, 0, 450)
+		MainFrame.Position = UDim2.new(0.5, -315, 0.5, -225)
+		MainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 18)
+		MainFrame.BorderSizePixel = 0
+		MainFrame.Visible = false
+		Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 10)
+
+		local CloseButton = Instance.new("TextButton", MainFrame)
+		CloseButton.Size = UDim2.new(0, 30, 0, 30)
+		CloseButton.Position = UDim2.new(1, -40, 0, 8)
+		CloseButton.Text = "X"
+		CloseButton.TextSize = 15
+		CloseButton.Font = Enum.Font.SourceSansBold
+		CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+		CloseButton.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+		CloseButton.ZIndex = 10
+		Instance.new("UICorner", CloseButton).CornerRadius = UDim.new(0, 6)
+
+		----------------------------------------------------------------
+		-- ☯️ 3. 左サイドバー（yokai.winロゴ ＆ 発光エフェクト再現）
+		----------------------------------------------------------------
+		local Sidebar = Instance.new("Frame", MainFrame)
+		Sidebar.Size = UDim2.new(0, 85, 1, 0)
+		Sidebar.BackgroundColor3 = Color3.fromRGB(11, 11, 13)
+		Instance.new("UICorner", Sidebar).CornerRadius = UDim.new(0, 10)
+
+		local SidebarLine = Instance.new("Frame", Sidebar)
+		SidebarLine.Size = UDim2.new(0, 1, 1, 0)
+		SidebarLine.Position = UDim2.new(1, -1, 0, 0)
+		SidebarLine.BackgroundColor3 = Color3.fromRGB(28, 28, 33)
+
+		local ContentFrame = Instance.new("Frame", MainFrame)
+		ContentFrame.Size = UDim2.new(1, -85, 1, 0)
+		ContentFrame.Position = UDim2.new(0, 85, 0, 0)
+		ContentFrame.BackgroundTransparency = 1
+
+		local Pages = {}
+		local function createPage(name)
+			local p = Instance.new("Frame", ContentFrame)
+			p.Size = UDim2.new(1, 0, 1, 0)
+			p.BackgroundTransparency = 1
+			p.Visible = false
+			Pages[name] = p
+			return p
+		end
+
+		createPage("combat")
+		createPage("movement")
+		createPage("visuals")
+		createPage("sun")
+		createPage("gear")
+		createPage("save")
+
+		----------------------------------------------------------------
+		-- ☀️ 太陽タブ（4番目）：いじれる本物のスライダー＆トグル
+		----------------------------------------------------------------
+		local SunScroll = Instance.new("ScrollingFrame", Pages["sun"])
+		SunScroll.Size = UDim2.new(1, -20, 1, -40)
+		SunScroll.Position = UDim2.new(0, 10, 0, 20)
+		SunScroll.BackgroundTransparency = 1
+		SunScroll.BorderSizePixel = 0
+		SunScroll.ScrollBarThickness = 3
+		local SunLayout = Instance.new("UIListLayout", SunScroll)
+		SunLayout.Padding = UDim.new(0, 8)
+
+		-- 🟢 【高性能】ESPトグルスイッチ（緑発光仕様）
+		local EspToggleFrame = Instance.new("Frame", SunScroll)
+		EspToggleFrame.Size = UDim2.new(1, -10, 0, 40)
+		EspToggleFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
+		Instance.new("UICorner", EspToggleFrame).CornerRadius = UDim.new(0, 6)
+
+		local EspLbl = Instance.new("TextLabel", EspToggleFrame)
+		EspLbl.Size = UDim2.new(1, -60, 1, 0)
+		EspLbl.Position = UDim2.new(0, 12, 0, 0)
 		EspLbl.Text = "☐  Player ESP (Green Highlight)"
 		EspLbl.TextColor3 = Color3.fromRGB(160, 160, 165)
-		for _, p in ipairs(Players:GetPlayers()) do
-			if p.Character and p.Character:FindFirstChild("YokaiESP") then p.Character.YokaiESP:Destroy() end
+		EspLbl.TextSize = 13
+		EspLbl.Font = Enum.Font.SourceSansBold
+		EspLbl.TextXAlignment = Enum.TextXAlignment.Left
+		EspLbl.BackgroundTransparency = 1
+
+		local EspBtn = Instance.new("TextButton", EspToggleFrame)
+		EspBtn.Size = UDim2.new(1, 0, 1, 0)
+		EspBtn.BackgroundTransparency = 1
+		EspBtn.Text = ""
+
+		-- ESPシステム本体
+		local function updateEspVisuals(active)
+			currentSettings.EspEnabled = active
+			if active then
+				EspLbl.Text = "☑  Player ESP (Green Highlight)"
+				EspLbl.TextColor3 = Color3.fromRGB(160, 210, 20)
+				task.spawn(function()
+					while currentSettings.EspEnabled do
+						for _, p in ipairs(Players:GetPlayers()) do
+							if p ~= LocalPlayer and p.Character then
+								local hl = p.Character:FindFirstChild("YokaiESP")
+								if not hl then
+									hl = Instance.new("Highlight")
+									hl.Name = "YokaiESP"
+									hl.FillColor = Color3.fromRGB(160, 210, 20)
+									hl.FillTransparency = 0.4
+									hl.OutlineColor = Color3.fromRGB(255, 255, 255)
+									hl.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+									hl.Parent = p.Character
+								end
+							end
+						end
+						task.wait(1)
+					end
+				end)
+			else
+				EspLbl.Text = "☐  Player ESP (Green Highlight)"
+				EspLbl.TextColor3 = Color3.fromRGB(160, 160, 165)
+				for _, p in ipairs(Players:GetPlayers()) do
+					if p.Character and p.Character:FindFirstChild("YokaiESP") then p.Character.YokaiESP:Destroy() end
+				end
+			end
 		end
-	end
-end
-EspBtn.MouseButton1Click:Connect(function() updateEspVisuals(not currentSettings.EspEnabled) end)
+		EspBtn.MouseButton1Click:Connect(function() updateEspVisuals(not currentSettings.EspEnabled) end)
 
-local function createRealSlider(parent, text, settingKey, defaultVal)
-	local container = Instance.new("Frame", parent)
-	container.Size = UDim2.new(1, -10, 0, 45)
-	container.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
-	Instance.new("UICorner", container).CornerRadius = UDim.new(0, 6)
-	
-	local lbl = Instance.new("TextLabel", container)
-	lbl.Size = UDim2.new(1, -70, 0, 20)
-	lbl.Position = UDim2.new(0, 12, 0, 5)
-	lbl.Text = text
-	lbl.TextColor3 = Color3.fromRGB(200, 200, 205)
-	lbl.TextSize = 13
-	lbl.Font = Enum.Font.SourceSansBold
-	lbl.TextXAlignment = Enum.TextXAlignment.Left
-	lbl.BackgroundTransparency = 1
-	
-	local valueLbl = Instance.new("TextLabel", container)
-	valueLbl.Size = UDim2.new(0, 50, 0, 20)
-	valueLbl.Position = UDim2.new(1, -62, 0, 5)
-	valueLbl.Text = tostring(defaultVal) .. "%"
-	valueLbl.TextColor3 = Color3.fromRGB(150, 150, 155)
-	valueLbl.TextSize = 12
-	valueLbl.TextXAlignment = Enum.TextXAlignment.Right
-	valueLbl.BackgroundTransparency = 1
-	
-	local slideBG = Instance.new("TextButton", container)
-	slideBG.Size = UDim2.new(1, -24, 0, 6)
-	slideBG.Position = UDim2.new(0, 12, 0, 30)
-	slideBG.BackgroundColor3 = Color3.fromRGB(40, 40, 45)
-	slideBG.Text = ""
-	Instance.new("UICorner", slideBG).CornerRadius = UDim.new(0, 3)
-	
-	local slideFill = Instance.new("Frame", slideBG)
-	slideFill.Size = UDim2.new(defaultVal / 100, 0, 1, 0)
-	slideFill.BackgroundColor3 = Color3.fromRGB(160, 210, 20)
-	Instance.new("UICorner", slideFill).CornerRadius = UDim.new(0, 3)
-	
-	local dragging = false
-	local function updateSlider(input)
-		local posX = math.clamp((input.Position.X - slideBG.AbsolutePosition.X) / slideBG.AbsoluteSize.X, 0, 1)
-		slideFill.Size = UDim2.new(posX, 0, 1, 0)
-		local finalVal = math.round(posX * 100)
-		valueLbl.Text = tostring(finalVal) .. "%"
-		currentSettings[settingKey] = finalVal
-	end
-	slideBG.InputBegan:Connect(function(input)
-		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then dragging = true updateSlider(input) end
-	end)
-	UserInputService.InputChanged:Connect(function(input)
-		if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then updateSlider(input) end
-	end)
-	UserInputService.InputEnded:Connect(function(input)
-		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then dragging = false end
-	end)
-end
-
-local function createRealToggle(parent, text, settingKey)
-	local container = Instance.new("Frame", parent)
-	container.Size = UDim2.new(1, -10, 0, 35)
+		local function createRealSlider(parent, text, settingKey, defaultVal)
+			local container = Instance.new("Frame", parent)
+			container.Size = UDim2.new(1, -10, 0, 45)
+			container.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
+			Instance.new("UICorner", container).CornerRadius = UDim.new(0, 6)
+			
+			local lbl = Instance.new("TextLabel", container)
+			lbl.Size = UDim2.new(1, -70, 0, 20)
+			lbl.Position = UDim2.new(0, 12, 0, 5)
+			lbl.Text = text
+			lbl.TextColor3 = Color3.fromRGB(200, 200, 205)
+			lbl.TextSize = 13
+			lbl.Font = Enum.Font.SourceSansBold
+			lbl.TextXAlignment = Enum.TextXAlignment.Left
+			lbl.BackgroundTransparency = 1
+			
+			local valueLbl = Instance.new("TextLabel", container)
+			valueLbl.Size = UDim2.new(0, 50, 0, 20)
+			valueLbl.Position = UDim2.new(1, -62, 0, 5)
+			valueLbl.Text = tostring(defaultVal) .. "%"
+			valueLbl.TextColor3 = Color3.fromRGB(150, 150, 155)
+			valueLbl.TextSize = 12
+			valueLbl.TextXAlignment = Enum.TextXAlignment.Right
+			valueLbl.BackgroundTransparency = 1
+			
+			local slideBG = Instance.new("TextButton", container)
+			slideBG.Size = UDim2.new(1, -24, 0, 6)
+			slideBG.Position = UDim2.new(0, 12, 0, 30)
+			slideBG.BackgroundColor3 = Color3.fromRGB(40, 40, 45)
+			slideBG.Text = ""
+			Instance.new("UICorner", slideBG).CornerRadius = UDim.new(0, 3)
+			
+			local slideFill = Instance.new("Frame", slideBG)
+			slideFill.Size = UDim2.new(defaultVal / 100, 0, 1, 0)
+			slideFill.BackgroundColor3 = Color3.fromRGB(160, 210, 20)
+			slideFill.BorderSizePixel = 0
+			Instance.new("UICorner", slideFill).CornerRadius = UDim.new(0, 3)
+			
+			local dragging = false
+			local function updateSlider(input)
+				local posX = math.clamp((input.Position.X - slideBG.AbsolutePosition.X) / slideBG.AbsoluteSize.X, 0, 1)
+				slideFill.Size = UDim2.new(posX, 0, 1, 0)
+				local finalVal = math.round(posX * 100)
+				valueLbl.Text = tostring(finalVal) .. "%"
+				currentSettings[settingKey] = finalVal
+			end
+			slideBG.InputBegan:Connect(function(input)
+				if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then dragging = true updateSlider(input) end
+			end)
+			UserInputService.InputChanged:Connect(function(input)
