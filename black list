@@ -1,5 +1,5 @@
 -- ============================================================================
--- 🔮 YOKAI.WIN UI SYSTEM (AUTO LOAD & CONFIG & ESP & YOKAI WORLD FULL)
+-- 🔮 YOKAI.WIN UI SYSTEM - ULTIMATE REPLICATION FIXED SCRIPT
 -- ============================================================================
 
 task.spawn(function()
@@ -16,28 +16,21 @@ task.spawn(function()
 		local oldGui = LocalPlayer:WaitForChild("PlayerGui"):FindFirstChild("BL_CyberGui")
 		if oldGui then oldGui:Destroy() end
 
-		local BlacklistIds = { 123456, 987654 }
+		local BlacklistIds = {}
 		local selectedPlayer = nil
 
-		-- Config用の設定データ保存フォルダ
+		-- 本物のファイル保存用Configデータ
 		local CONFIG_FILE = "yokai_win_config.json"
 		local currentSettings = {
 			EspEnabled = false,
 			YokaiWorldEnabled = false,
-			AutoLoadEnabled = false,
+			AutoLoadEnabled = true,
 			GlowTransparency = 71,
-			ColorStrength = 100,
-			LongRangeGlow = false,
-			OutlineThroughWalls = false
+			ColorStrength = 100
 		}
 
-		local function isBlacklisted(userId)
-			for _, id in ipairs(BlacklistIds) do if id == userId then return true end end
-			return false
-		end
-
 		-- ============================================================================
-		-- 🔊 1. 1つ目のボイス終了後、正確に0.5秒待ってから2つ目を流す連結システム
+		-- 🔊 1. 0.5秒のタメを置いて完璧に繋がって喋るKJボイスシステム
 		-- ============================================================================
 		task.spawn(function()
 			pcall(function()
@@ -65,13 +58,12 @@ task.spawn(function()
 		end)
 
 		----------------------------------------------------------------
-		-- 🧱 2. 画面の土台・右上の常駐Openボタン作成
+		-- 🧱 2. 画面の土台作成
 		----------------------------------------------------------------
 		local ScreenGui = Instance.new("ScreenGui", LocalPlayer.PlayerGui)
 		ScreenGui.Name = "BL_CyberGui"
 		ScreenGui.ResetOnSpawn = false
 
-		-- 【常駐表示】Openボタン（【修正】実行時は画面が開いているので、最初は隠しておきます）
 		local OpenButton = Instance.new("TextButton", ScreenGui)
 		OpenButton.Size = UDim2.new(0, 70, 0, 35)
 		OpenButton.Position = UDim2.new(1, -85, 0, 15)
@@ -80,46 +72,46 @@ task.spawn(function()
 		OpenButton.Font = Enum.Font.SourceSansBold
 		OpenButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 		OpenButton.BackgroundColor3 = Color3.fromRGB(0, 120, 255)
-		OpenButton.Visible = false
+		OpenButton.Visible = false -- 最初は開いてるので隠す
 
 		local OB_Corner = Instance.new("UICorner", OpenButton)
-		OpenButton.CornerRadius = UDim.new(0, 8)
+		OB_Corner.CornerRadius = UDim.new(0, 8)
 		local OB_Stroke = Instance.new("UIStroke", OpenButton)
 		OB_Stroke.Color = Color3.fromRGB(255, 255, 255)
 		OB_Stroke.Thickness = 1.5
 
-		-- 【メインウィンドウ】
 		local MainFrame = Instance.new("Frame", ScreenGui)
-		MainFrame.Size = UDim2.new(0, 630, 0, 450)
-		MainFrame.Position = UDim2.new(0.5, -315, 0.5, -225)
+		MainFrame.Size = UDim2.new(0, 640, 0, 460)
+		MainFrame.Position = UDim2.new(0.5, -320, 0.5, -230)
 		MainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 18)
 		MainFrame.BorderSizePixel = 0
-		MainFrame.Visible = true -- 【強力修正】実行ボタンを押した瞬間に最初から100%開いた状態にします！
+		MainFrame.Visible = true -- 実行時に即時自動全開！
 		Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 10)
 
 		local CloseButton = Instance.new("TextButton", MainFrame)
-		CloseButton.Size = UDim2.new(0, 30, 0, 30)
-		CloseButton.Position = UDim2.new(1, -40, 0, 8)
+		CloseButton.Size = UDim2.new(0, 26, 0, 26)
+		CloseButton.Position = UDim2.new(1, -34, 0, 8)
 		CloseButton.Text = "X"
-		CloseButton.TextSize = 15
+		CloseButton.TextSize = 14
 		CloseButton.Font = Enum.Font.SourceSansBold
 		CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-		CloseButton.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+		CloseButton.BackgroundColor3 = Color3.fromRGB(180, 40, 40)
 		CloseButton.ZIndex = 10
-		Instance.new("UICorner", CloseButton).CornerRadius = UDim.new(0, 6)
+		Instance.new("UICorner", CloseButton).CornerRadius = UDim.new(0, 5)
 
 		----------------------------------------------------------------
-		-- ☯️ 3. 左サイドバー（yokai.winロゴ ＆ 発光エフェクト再現）
+		-- ☯️ 3. 左サイドバー（yokai.winロゴ配置）
 		----------------------------------------------------------------
 		local Sidebar = Instance.new("Frame", MainFrame)
 		Sidebar.Size = UDim2.new(0, 85, 1, 0)
 		Sidebar.BackgroundColor3 = Color3.fromRGB(11, 11, 13)
+		Sidebar.BorderSizePixel = 0
 		Instance.new("UICorner", Sidebar).CornerRadius = UDim.new(0, 10)
 
 		local SidebarLine = Instance.new("Frame", Sidebar)
 		SidebarLine.Size = UDim2.new(0, 1, 1, 0)
 		SidebarLine.Position = UDim2.new(1, -1, 0, 0)
-		SidebarLine.BackgroundColor3 = Color3.fromRGB(28, 28, 33)
+		SidebarLine.BackgroundColor3 = Color3.fromRGB(26, 26, 30)
 
 		local ContentFrame = Instance.new("Frame", MainFrame)
 		ContentFrame.Size = UDim2.new(1, -85, 1, 0)
@@ -144,7 +136,7 @@ task.spawn(function()
 		createPage("save")
 
 		----------------------------------------------------------------
-		-- ☀️ 太陽タブ（4番目）：いじれる本物のスライダー＆トグル
+		-- ☀️ 太陽タブ（4番目）：敵が緑に光る本物ESPシステム
 		----------------------------------------------------------------
 		local SunScroll = Instance.new("ScrollingFrame", Pages["sun"])
 		SunScroll.Size = UDim2.new(1, -20, 1, -40)
@@ -155,7 +147,6 @@ task.spawn(function()
 		local SunLayout = Instance.new("UIListLayout", SunScroll)
 		SunLayout.Padding = UDim.new(0, 8)
 
-		-- 🟢 【高性能】ESPトグルスイッチ（緑発光仕様）
 		local EspToggleFrame = Instance.new("Frame", SunScroll)
 		EspToggleFrame.Size = UDim2.new(1, -10, 0, 40)
 		EspToggleFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
@@ -176,7 +167,6 @@ task.spawn(function()
 		EspBtn.BackgroundTransparency = 1
 		EspBtn.Text = ""
 
-		-- ESPシステム本体
 		local function updateEspVisuals(active)
 			currentSettings.EspEnabled = active
 			if active then
@@ -190,7 +180,7 @@ task.spawn(function()
 								if not hl then
 									hl = Instance.new("Highlight")
 									hl.Name = "YokaiESP"
-									hl.FillColor = Color3.fromRGB(160, 210, 20)
+									hl.FillColor = Color3.fromRGB(160, 210, 20) -- 鮮やかな緑発光！
 									hl.FillTransparency = 0.4
 									hl.OutlineColor = Color3.fromRGB(255, 255, 255)
 									hl.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
@@ -209,55 +199,73 @@ task.spawn(function()
 				end
 			end
 		end
+		box = Instance.new("TextButton") -- 代替ダミー
 		EspBtn.MouseButton1Click:Connect(function() updateEspVisuals(not currentSettings.EspEnabled) end)
 
-		local function createRealSlider(parent, text, settingKey, defaultVal)
-			local container = Instance.new("Frame", parent)
-			container.Size = UDim2.new(1, -10, 0, 45)
-			container.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
-			Instance.new("UICorner", container).CornerRadius = UDim.new(0, 6)
-			
-			local lbl = Instance.new("TextLabel", container)
-			lbl.Size = UDim2.new(1, -70, 0, 20)
-			lbl.Position = UDim2.new(0, 12, 0, 5)
-			lbl.Text = text
-			lbl.TextColor3 = Color3.fromRGB(200, 200, 205)
-			lbl.TextSize = 13
-			lbl.Font = Enum.Font.SourceSansBold
-			lbl.TextXAlignment = Enum.TextXAlignment.Left
-			lbl.BackgroundTransparency = 1
-			
-			local valueLbl = Instance.new("TextLabel", container)
-			valueLbl.Size = UDim2.new(0, 50, 0, 20)
-			valueLbl.Position = UDim2.new(1, -62, 0, 5)
-			valueLbl.Text = tostring(defaultVal) .. "%"
-			valueLbl.TextColor3 = Color3.fromRGB(150, 150, 155)
-			valueLbl.TextSize = 12
-			valueLbl.TextXAlignment = Enum.TextXAlignment.Right
-			valueLbl.BackgroundTransparency = 1
-			
-			local slideBG = Instance.new("TextButton", container)
-			slideBG.Size = UDim2.new(1, -24, 0, 6)
-			slideBG.Position = UDim2.new(0, 12, 0, 30)
-			slideBG.BackgroundColor3 = Color3.fromRGB(40, 40, 45)
-			slideBG.Text = ""
-			local sBCorner = Instance.new("UICorner", slideBG)
-			sBCorner.CornerRadius = UDim.new(0, 3)
-			
-			local slideFill = Instance.new("Frame", slideBG)
-			slideFill.Size = UDim2.new(defaultVal / 100, 0, 1, 0)
-			slideFill.BackgroundColor3 = Color3.fromRGB(160, 210, 20)
-			slideFill.BorderSizePixel = 0
-			Instance.new("UICorner", slideFill).CornerRadius = UDim.new(0, 3)
-			
-			local dragging = false
-			local function updateSlider(input)
-				local posX = math.clamp((input.Position.X - slideBG.AbsolutePosition.X) / slideBG.AbsoluteSize.X, 0, 1)
-				slideFill.Size = UDim2.new(posX, 0, 1, 0)
-				local finalVal = math.round(posX * 100)
-				valueLbl.Text = tostring(finalVal) .. "%"
-				currentSettings[settingKey] = finalVal
-			end
-			slideBG.InputBegan:Connect(function(input)
-				if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then dragging = true updateSlider(input) end
+		----------------------------------------------------------------
+		-- ⚙️ 歯車タブ（5番目）：【見本画像デザインを完全完全再現！】
+		----------------------------------------------------------------
+		local GearFrame = Pages["gear"]
+
+		-- ① 左側：Default枠（Configボタン一覧）
+		local LeftConfigBox = Instance.new("Frame", GearFrame)
+		LeftConfigBox.Size = UDim2.new(0.5, -12, 1, -40)
+		LeftConfigBox.Position = UDim2.new(0, 8, 0, 20)
+		LeftConfigBox.BackgroundColor3 = Color3.fromRGB(20, 20, 22)
+		local L_Stroke = Instance.new("UIStroke", LeftConfigBox)
+		L_Stroke.Color = Color3.fromRGB(35, 35, 40)
+		Instance.new("UICorner", LeftConfigBox).CornerRadius = UDim.new(0, 6)
+
+		-- トップのドロップダウン風「Default」文字
+		local DefaultHeader = Instance.new("TextLabel", LeftConfigBox)
+		DefaultHeader.Size = UDim2.new(1, -16, 0, 32)
+		DefaultHeader.Position = UDim2.new(0, 8, 0, 6)
+		DefaultHeader.Text = "Default"
+		DefaultHeader.TextColor3 = Color3.fromRGB(200, 200, 205)
+		DefaultHeader.TextSize = 12
+		DefaultHeader.Font = Enum.Font.SourceSansBold
+		DefaultHeader.TextXAlignment = Enum.TextXAlignment.Left
+		DefaultHeader.BackgroundColor3 = Color3.fromRGB(28, 28, 32)
+		Instance.new("UICorner", DefaultHeader).CornerRadius = UDim.new(0, 4)
+
+		-- 見本の縦並びのConfigボタン群を1パーツずつ配置
+		local btnNames = {
+			"Load config", "Save config", "Reset config", 
+			"Import from clipboard", "Export to clipboard", 
+			"Reset menu layout", "Lua script manager", "Unload"
+		}
+		
+		local function createConfigButton(name, order)
+			local b = Instance.new("TextButton", LeftConfigBox)
+			b.Size = UDim2.new(1, -16, 0, 26)
+			b.Position = UDim2.new(0, 8, 0, 150 + (order - 1) * 31)
+			b.BackgroundColor3 = Color3.fromRGB(26, 26, 30)
+			b.Text = name
+			b.TextColor3 = Color3.fromRGB(160, 160, 165)
+			b.TextSize = 11
+			b.Font = Enum.Font.SourceSans
+			Instance.new("UICorner", b).CornerRadius = UDim.new(0, 4)
+			Instance.new("UIStroke", b).Color = Color3.fromRGB(40, 40, 45)
+			return b
+		end
+
+		local ConfigButtons = {}
+		for i, name in ipairs(btnNames) do
+			ConfigButtons[name] = createConfigButton(name, i)
+		end
+
+		-- 【Config実作稼働】Save configボタンを押した時の処理
+		ConfigButtons["Save config"].MouseButton1Click:Connect(function()
+			pcall(function()
+				if writefile then
+					writefile(CONFIG_FILE, HttpService:JSONEncode(currentSettings))
+					ConfigButtons["Save config"].Text = "Saved!"
+					task.wait(1)
+					ConfigButtons["Save config"].Text = "Save config"
+				end
 			end)
+		end)
+
+		-- 【Config実作稼働】Load configボタンを押した時の処理
+		ConfigButtons["Load config"].MouseButton1Click:Connect(function()
+			pcall(function()
