@@ -1,5 +1,5 @@
 -- ============================================================================
--- 🔮 YOKAI.WIN UI SYSTEM (YOKAI WORLD & ENEMY GREEN ESP FULL FUNCTION)
+-- 🔮 YOKAI.WIN UI SYSTEM (AUTO LOAD & CONFIG & ESP & YOKAI WORLD FULL)
 -- ============================================================================
 
 local Players = game:GetService("Players")
@@ -8,6 +8,7 @@ local Lighting = game:GetService("Lighting")
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 local SoundService = game:GetService("SoundService")
+local HttpService = game:GetService("HttpService")
 
 -- 二重起動によるクラッシュを防ぐため古いUIを強制削除
 local oldGui = LocalPlayer:WaitForChild("PlayerGui"):FindFirstChild("BL_CyberGui")
@@ -16,10 +17,20 @@ if oldGui then oldGui:Destroy() end
 local BlacklistIds = { 123456, 987654 }
 local selectedPlayer = nil
 
+-- Config用の設定データ保存フォルダ
+local CONFIG_FILE = "yokai_win_config.json"
+local currentSettings = {
+	EspEnabled = false,
+	YokaiWorldEnabled = false,
+	AutoLoadEnabled = false,
+	GlowTransparency = 71,
+	ColorStrength = 100,
+	LongRangeGlow = false,
+	OutlineThroughWalls = false
+}
+
 local function isBlacklisted(userId)
-	for _, id in ipairs(BlacklistIds) do
-		if id == userId then return true end
-	end
+	for _, id in ipairs(BlacklistIds) do if id == userId then return true end end
 	return false
 end
 
@@ -66,7 +77,6 @@ OpenButton.TextSize = 14
 OpenButton.Font = Enum.Font.SourceSansBold
 OpenButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 OpenButton.BackgroundColor3 = Color3.fromRGB(0, 120, 255)
-OpenButton.Visible = true
 
 local OB_Corner = Instance.new("UICorner", OpenButton)
 OB_Corner.CornerRadius = UDim.new(0, 8)
@@ -90,7 +100,6 @@ CloseButton.TextSize = 15
 CloseButton.Font = Enum.Font.SourceSansBold
 CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 CloseButton.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
-CloseButton.BorderSizePixel = 0
 CloseButton.ZIndex = 10
 Instance.new("UICorner", CloseButton).CornerRadius = UDim.new(0, 6)
 
@@ -100,7 +109,6 @@ Instance.new("UICorner", CloseButton).CornerRadius = UDim.new(0, 6)
 local Sidebar = Instance.new("Frame", MainFrame)
 Sidebar.Size = UDim2.new(0, 85, 1, 0)
 Sidebar.BackgroundColor3 = Color3.fromRGB(11, 11, 13)
-Sidebar.BorderSizePixel = 0
 Instance.new("UICorner", Sidebar).CornerRadius = UDim.new(0, 10)
 
 local SidebarLine = Instance.new("Frame", Sidebar)
@@ -131,7 +139,7 @@ local Page_Gear     = createPage("gear")
 local Page_Save     = createPage("save")
 
 ----------------------------------------------------------------
--- ☀️ 太陽タブ（4番目）：【超強化】敵が緑に光る本物ESP ＆ スライダー
+-- ☀️ 太陽タブ（4番目）：いじれる本物のスライダー＆トグル
 ----------------------------------------------------------------
 local SunScroll = Instance.new("ScrollingFrame", Page_Sun)
 SunScroll.Size = UDim2.new(1, -20, 1, -40)
@@ -142,7 +150,63 @@ SunScroll.ScrollBarThickness = 3
 local SunLayout = Instance.new("UIListLayout", SunScroll)
 SunLayout.Padding = UDim.new(0, 8)
 
-local function createRealSlider(parent, text, defaultVal)
+-- 🟢 【高性能】ESPトグルスイッチ（緑発光仕様）
+local EspToggleFrame = Instance.new("Frame", SunScroll)
+EspToggleFrame.Size = UDim2.new(1, -10, 0, 40)
+EspToggleFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
+Instance.new("UICorner", EspToggleFrame).CornerRadius = UDim.new(0, 6)
+
+local EspLbl = Instance.new("TextLabel", EspToggleFrame)
+EspLbl.Size = UDim2.new(1, -60, 1, 0)
+EspLbl.Position = UDim2.new(0, 12, 0, 0)
+EspLbl.Text = "☐  Player ESP (Green Highlight)"
+EspLbl.TextColor3 = Color3.fromRGB(160, 160, 165)
+EspLbl.TextSize = 13
+EspLbl.Font = Enum.Font.SourceSansBold
+EspLbl.TextXAlignment = Enum.TextXAlignment.Left
+EspLbl.BackgroundTransparency = 1
+
+local EspBtn = Instance.new("TextButton", EspToggleFrame)
+EspBtn.Size = UDim2.new(1, 0, 1, 0)
+EspBtn.BackgroundTransparency = 1
+EspBtn.Text = ""
+
+-- ESPシステム本体
+local function updateEspVisuals(active)
+	currentSettings.EspEnabled = active
+	if active then
+		EspLbl.Text = "☑  Player ESP (Green Highlight)"
+		EspLbl.TextColor3 = Color3.fromRGB(160, 210, 20)
+		task.spawn(function()
+			while currentSettings.EspEnabled do
+				for _, p in ipairs(Players:GetPlayers()) do
+					if p ~= LocalPlayer and p.Character then
+						local hl = p.Character:FindFirstChild("YokaiESP")
+						if not hl then
+							hl = Instance.new("Highlight")
+							hl.Name = "YokaiESP"
+							hl.FillColor = Color3.fromRGB(160, 210, 20)
+							hl.FillTransparency = 0.4
+							hl.OutlineColor = Color3.fromRGB(255, 255, 255)
+							hl.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+							hl.Parent = p.Character
+						end
+					end
+				end
+				task.wait(1)
+			end
+		end)
+	else
+		EspLbl.Text = "☐  Player ESP (Green Highlight)"
+		EspLbl.TextColor3 = Color3.fromRGB(160, 160, 165)
+		for _, p in ipairs(Players:GetPlayers()) do
+			if p.Character and p.Character:FindFirstChild("YokaiESP") then p.Character.YokaiESP:Destroy() end
+		end
+	end
+end
+EspBtn.MouseButton1Click:Connect(function() updateEspVisuals(not currentSettings.EspEnabled) end)
+
+local function createRealSlider(parent, text, settingKey, defaultVal)
 	local container = Instance.new("Frame", parent)
 	container.Size = UDim2.new(1, -10, 0, 45)
 	container.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
@@ -172,20 +236,20 @@ local function createRealSlider(parent, text, defaultVal)
 	slideBG.Position = UDim2.new(0, 12, 0, 30)
 	slideBG.BackgroundColor3 = Color3.fromRGB(40, 40, 45)
 	slideBG.Text = ""
-	slideBG.BorderSizePixel = 0
 	Instance.new("UICorner", slideBG).CornerRadius = UDim.new(0, 3)
 	
 	local slideFill = Instance.new("Frame", slideBG)
 	slideFill.Size = UDim2.new(defaultVal / 100, 0, 1, 0)
-	slideFill.BackgroundColor3 = Color3.fromRGB(160, 210, 20) -- ライムグリーン
-	slideFill.BorderSizePixel = 0
+	slideFill.BackgroundColor3 = Color3.fromRGB(160, 210, 20)
 	Instance.new("UICorner", slideFill).CornerRadius = UDim.new(0, 3)
 	
 	local dragging = false
 	local function updateSlider(input)
 		local posX = math.clamp((input.Position.X - slideBG.AbsolutePosition.X) / slideBG.AbsoluteSize.X, 0, 1)
 		slideFill.Size = UDim2.new(posX, 0, 1, 0)
-		valueLbl.Text = tostring(math.round(posX * 100)) .. "%"
+		local finalVal = math.round(posX * 100)
+		valueLbl.Text = tostring(finalVal) .. "%"
+		currentSettings[settingKey] = finalVal
 	end
 	slideBG.InputBegan:Connect(function(input)
 		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then dragging = true updateSlider(input) end
@@ -198,67 +262,6 @@ local function createRealSlider(parent, text, defaultVal)
 	end)
 end
 
-local function createRealToggle(parent, text)
+local function createRealToggle(parent, text, settingKey)
 	local container = Instance.new("Frame", parent)
 	container.Size = UDim2.new(1, -10, 0, 35)
-	container.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
-	Instance.new("UICorner", container).CornerRadius = UDim.new(0, 6)
-	
-	local lbl = Instance.new("TextLabel", container)
-	lbl.Size = UDim2.new(1, -60, 1, 0)
-	lbl.Position = UDim2.new(0, 12, 0, 0)
-	lbl.Text = "☐  " .. text
-	lbl.TextColor3 = Color3.fromRGB(160, 160, 165)
-	lbl.TextSize = 13
-	lbl.Font = Enum.Font.SourceSansBold
-	lbl.TextXAlignment = Enum.TextXAlignment.Left
-	lbl.BackgroundTransparency = 1
-	
-	local toggleBtn = Instance.new("TextButton", container)
-	toggleBtn.Size = UDim2.new(1, 0, 1, 0)
-	toggleBtn.BackgroundTransparency = 1
-	toggleBtn.Text = ""
-	
-	local enabled = false
-	toggleBtn.MouseButton1Click:Connect(function()
-		enabled = not enabled
-		if enabled then lbl.Text = "☑  " .. text lbl.TextColor3 = Color3.fromRGB(160, 210, 20) else lbl.Text = "☐  " .. text lbl.TextColor3 = Color3.fromRGB(160, 160, 165) end
-	end)
-end
-
--- 🟢 【新機能追加】オンにすると敵が緑色に透けて光る本物の「ESP」トグルスイッチ
-local EspToggleFrame = Instance.new("Frame", SunScroll)
-EspToggleFrame.Size = UDim2.new(1, -10, 0, 40)
-EspToggleFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
-Instance.new("UICorner", EspToggleFrame).CornerRadius = UDim.new(0, 6)
-
-local EspLbl = Instance.new("TextLabel", EspToggleFrame)
-EspLbl.Size = UDim2.new(1, -60, 1, 0)
-EspLbl.Position = UDim2.new(0, 12, 0, 0)
-EspLbl.Text = "☐  Player ESP (Green Highlight)"
-EspLbl.TextColor3 = Color3.fromRGB(160, 160, 165)
-EspLbl.TextSize = 13
-EspLbl.Font = Enum.Font.SourceSansBold
-EspLbl.TextXAlignment = Enum.TextXAlignment.Left
-EspLbl.BackgroundTransparency = 1
-
-local EspBtn = Instance.new("TextButton", EspToggleFrame)
-EspBtn.Size = UDim2.new(1, 0, 1, 0)
-EspBtn.BackgroundTransparency = 1
-EspBtn.Text = ""
-
-local espActive = false
-
--- ESP（緑色発光ハイライト）のリアルタイムシステム
-box.MouseButton1Click:Connect(function() end) -- ボタン動作用
-EspBtn.MouseButton1Click:Connect(function()
-	espActive = not espActive
-	if espActive then
-		EspLbl.Text = "☑  Player ESP (Green Highlight)"
-		EspLbl.TextColor3 = Color3.fromRGB(160, 210, 20) -- チェックマーク緑化
-		
-		-- リアルタイムに全プレイヤーの周りに緑色のハイライトを出現させるループ
-		task.spawn(function()
-			while espActive do
-				for _, p in ipairs(Players:GetPlayers()) do
-					if p ~= LocalPlayer and p.Character then
