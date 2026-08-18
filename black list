@@ -1,9 +1,11 @@
 -- ============================================================================
--- 🔮 YOKAI.WIN ULTIMATE REPLICATION SYSTEM (YOKAI WORLD TAB DESIGN)
+-- 🔮 YOKAI.WIN UI SYSTEM (YOKAI WORLD & ENEMY GREEN ESP FULL FUNCTION)
 -- ============================================================================
 
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
+local Lighting = game:GetService("Lighting")
+local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 local SoundService = game:GetService("SoundService")
 
@@ -22,42 +24,40 @@ local function isBlacklisted(userId)
 end
 
 -- ============================================================================
--- 🔊 1. ロードした瞬間にKJボイスを2つ同時に大音量で全自動再生
+-- 🔊 1. 1つ目のボイス終了後、正確に0.5秒待ってから2つ目を流す連結システム
 -- ============================================================================
 task.spawn(function()
-	task.spawn(function()
-		pcall(function()
-			local s1 = Instance.new("Sound")
-			s1.SoundId = "rbxassetid://18434079822" -- 「もう遊びは終わりだ」
-			s1.Volume = 5
-			s1.Parent = SoundService
-			if not s1.IsLoaded then s1.Loaded:Wait() end
-			s1:Play()
-			s1.Ended:Connect(function() s1:Destroy() end)
-		end)
-	end)
+	pcall(function()
+		local s1 = Instance.new("Sound")
+		s1.SoundId = "rbxassetid://18434079822" -- 「もう遊びは終わりだ」
+		s1.Volume = 5
+		s1.Parent = SoundService
+		
+		local s2 = Instance.new("Sound")
+		s2.SoundId = "rbxassetid://14032128795" -- 「これですべてを終わらせる」
+		s2.Volume = 5
+		s2.Parent = SoundService
 
-	task.spawn(function()
-		pcall(function()
-			local s2 = Instance.new("Sound")
-			s2.SoundId = "rbxassetid://14032128795" -- 「これですべてを終わらせる」
-			s2.Volume = 5
-			s2.Parent = SoundService
-			if not s2.IsLoaded then s2.Loaded:Wait() end
+		if not s1.IsLoaded then s1.Loaded:Wait() end
+		if not s2.IsLoaded then s2.Loaded:Wait() end
+
+		s1:Play()
+		s1.Ended:Connect(function()
+			s1:Destroy()
+			task.wait(0.5) -- 0.5秒の絶妙な「ため」
 			s2:Play()
-			s2.Ended:Connect(function() s2:Destroy() end)
 		end)
+		s2.Ended:Connect(function() s2:Destroy() end)
 	end)
 end)
 
--- ============================================================================
+----------------------------------------------------------------
 -- 🧱 2. 画面の土台・右上の常駐Openボタン作成
--- ============================================================================
+----------------------------------------------------------------
 local ScreenGui = Instance.new("ScreenGui", LocalPlayer.PlayerGui)
 ScreenGui.Name = "BL_CyberGui"
 ScreenGui.ResetOnSpawn = false
 
--- 【常駐表示】Openボタン
 local OpenButton = Instance.new("TextButton", ScreenGui)
 OpenButton.Size = UDim2.new(0, 70, 0, 35)
 OpenButton.Position = UDim2.new(1, -85, 0, 15)
@@ -74,18 +74,14 @@ local OB_Stroke = Instance.new("UIStroke", OpenButton)
 OB_Stroke.Color = Color3.fromRGB(255, 255, 255)
 OB_Stroke.Thickness = 1.5
 
--- 【メインウィンドウ】見本画像のアスペクト比を忠実に再現したプロ仕様大型フレーム
 local MainFrame = Instance.new("Frame", ScreenGui)
-MainFrame.Size = UDim2.new(0, 640, 0, 460)
-MainFrame.Position = UDim2.new(0.5, -320, 0.5, -230)
-MainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 18) -- 高級感のあるサイバー漆黒
+MainFrame.Size = UDim2.new(0, 630, 0, 450)
+MainFrame.Position = UDim2.new(0.5, -315, 0.5, -225)
+MainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 18)
 MainFrame.BorderSizePixel = 0
 MainFrame.Visible = false
+Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 10)
 
-local MF_Corner = Instance.new("UICorner", MainFrame)
-MF_Corner.CornerRadius = UDim.new(0, 10)
-
--- ❌ 【右上配置】閉じるボタン
 local CloseButton = Instance.new("TextButton", MainFrame)
 CloseButton.Size = UDim2.new(0, 30, 0, 30)
 CloseButton.Position = UDim2.new(1, -40, 0, 8)
@@ -98,9 +94,9 @@ CloseButton.BorderSizePixel = 0
 CloseButton.ZIndex = 10
 Instance.new("UICorner", CloseButton).CornerRadius = UDim.new(0, 6)
 
--- ============================================================================
--- ☯️ 3. 左サイドバー（yokai.winロゴ ＆ 発角エフェクト再現）
--- ============================================================================
+----------------------------------------------------------------
+-- ☯️ 3. 左サイドバー（yokai.winロゴ ＆ 発光エフェクト再現）
+----------------------------------------------------------------
 local Sidebar = Instance.new("Frame", MainFrame)
 Sidebar.Size = UDim2.new(0, 85, 1, 0)
 Sidebar.BackgroundColor3 = Color3.fromRGB(11, 11, 13)
@@ -111,16 +107,12 @@ local SidebarLine = Instance.new("Frame", Sidebar)
 SidebarLine.Size = UDim2.new(0, 1, 1, 0)
 SidebarLine.Position = UDim2.new(1, -1, 0, 0)
 SidebarLine.BackgroundColor3 = Color3.fromRGB(28, 28, 33)
-SidebarLine.BorderSizePixel = 0
 
 local ContentFrame = Instance.new("Frame", MainFrame)
 ContentFrame.Size = UDim2.new(1, -85, 1, 0)
 ContentFrame.Position = UDim2.new(0, 85, 0, 0)
 ContentFrame.BackgroundTransparency = 1
 
-----------------------------------------------------------------
--- 🎨 各タブページの土台作成
-----------------------------------------------------------------
 local Pages = {}
 local function createPage(name)
 	local p = Instance.new("Frame", ContentFrame)
@@ -135,149 +127,138 @@ local Page_Combat   = createPage("combat")
 local Page_Movement = createPage("movement")
 local Page_Visuals  = createPage("visuals")
 local Page_Sun      = createPage("sun")
-local Page_Gear     = createPage("gear") -- ここを「Yokai World」の多機能メインページにします
+local Page_Gear     = createPage("gear")
 local Page_Save     = createPage("save")
 
 ----------------------------------------------------------------
--- 🟢 【高性能UI関数】見本通りの緑色トグル、ライムグリーンスライダー
+-- ☀️ 太陽タブ（4番目）：【超強化】敵が緑に光る本物ESP ＆ スライダー
 ----------------------------------------------------------------
--- ① チェックボックス（緑発光仕様）
-local function createMenuToggle(parent, text)
-	local item = Instance.new("Frame", parent)
-	item.Size = UDim2.new(1, -10, 0, 24)
-	item.BackgroundTransparency = 1
-	
-	local box = Instance.new("TextButton", item)
-	box.Size = UDim2.new(0, 12, 0, 12)
-	box.Position = UDim2.new(0, 10, 0.5, -6)
-	box.BackgroundColor3 = Color3.fromRGB(35, 35, 40)
-	box.Text = ""
-	Instance.new("UICorner", box).CornerRadius = UDim.new(0, 2)
-	local stroke = Instance.new("UIStroke", box)
-	stroke.Color = Color3.fromRGB(55, 55, 60)
-	stroke.Thickness = 1
-	
-	local lbl = Instance.new("TextLabel", item)
-	lbl.Size = UDim2.new(1, -35, 1, 0)
-	lbl.Position = UDim2.new(0, 30, 0, 0)
-	lbl.Text = text
-	lbl.TextColor3 = Color3.fromRGB(150, 150, 155)
-	lbl.TextSize = 12
-	lbl.Font = Enum.Font.SourceSans
-	lbl.TextXAlignment = Enum.TextXAlignment.Left
-	lbl.BackgroundTransparency = 1
-	
-	local active = false
-	box.MouseButton1Click:Connect(function()
-		active = not active
-		if active then
-			box.BackgroundColor3 = Color3.fromRGB(160, 210, 20) -- 見本通りのライムグリーン
-			stroke.Color = Color3.fromRGB(160, 210, 20)
-			lbl.TextColor3 = Color3.fromRGB(255, 255, 255)
-		else
-			box.BackgroundColor3 = Color3.fromRGB(35, 35, 40)
-			stroke.Color = Color3.fromRGB(55, 55, 60)
-			lbl.TextColor3 = Color3.fromRGB(150, 150, 155)
-		end
-	end)
-end
+local SunScroll = Instance.new("ScrollingFrame", Page_Sun)
+SunScroll.Size = UDim2.new(1, -20, 1, -40)
+SunScroll.Position = UDim2.new(0, 10, 0, 20)
+SunScroll.BackgroundTransparency = 1
+SunScroll.BorderSizePixel = 0
+SunScroll.ScrollBarThickness = 3
+local SunLayout = Instance.new("UIListLayout", SunScroll)
+SunLayout.Padding = UDim.new(0, 8)
 
--- ② 高性能ライムグリーンスライダー
-local function createMenuSlider(parent, text, defaultVal)
-	local item = Instance.new("Frame", parent)
-	item.Size = UDim2.new(1, -10, 0, 36)
-	item.BackgroundTransparency = 1
+local function createRealSlider(parent, text, defaultVal)
+	local container = Instance.new("Frame", parent)
+	container.Size = UDim2.new(1, -10, 0, 45)
+	container.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
+	Instance.new("UICorner", container).CornerRadius = UDim.new(0, 6)
 	
-	local lbl = Instance.new("TextLabel", item)
-	lbl.Size = UDim2.new(1, -60, 0, 15)
-	lbl.Position = UDim2.new(0, 10, 0, 2)
+	local lbl = Instance.new("TextLabel", container)
+	lbl.Size = UDim2.new(1, -70, 0, 20)
+	lbl.Position = UDim2.new(0, 12, 0, 5)
 	lbl.Text = text
-	lbl.TextColor3 = Color3.fromRGB(130, 130, 135)
-	lbl.TextSize = 11
-	lbl.Font = Enum.Font.SourceSans
+	lbl.TextColor3 = Color3.fromRGB(200, 200, 205)
+	lbl.TextSize = 13
+	lbl.Font = Enum.Font.SourceSansBold
 	lbl.TextXAlignment = Enum.TextXAlignment.Left
 	lbl.BackgroundTransparency = 1
 	
-	local valLbl = Instance.new("TextLabel", item)
-	valLbl.Size = UDim2.new(0, 50, 0, 15)
-	valLbl.Position = UDim2.new(1, -15, 0, 2)
-	valLbl.Text = tostring(defaultVal)
-	valLbl.TextColor3 = Color3.fromRGB(160, 210, 20)
-	valLbl.TextSize = 11
-	valLbl.TextXAlignment = Enum.TextXAlignment.Right
-	valLbl.BackgroundTransparency = 1
+	local valueLbl = Instance.new("TextLabel", container)
+	valueLbl.Size = UDim2.new(0, 50, 0, 20)
+	valueLbl.Position = UDim2.new(1, -62, 0, 5)
+	valueLbl.Text = tostring(defaultVal) .. "%"
+	valueLbl.TextColor3 = Color3.fromRGB(150, 150, 155)
+	valueLbl.TextSize = 12
+	valueLbl.TextXAlignment = Enum.TextXAlignment.Right
+	valueLbl.BackgroundTransparency = 1
 	
-	local track = Instance.new("TextButton", item)
-	track.Size = UDim2.new(1, -20, 0, 4)
-	track.Position = UDim2.new(0, 10, 0, 22)
-	track.BackgroundColor3 = Color3.fromRGB(40, 40, 45)
-	track.Text = ""
-	track.BorderSizePixel = 0
+	local slideBG = Instance.new("TextButton", container)
+	slideBG.Size = UDim2.new(1, -24, 0, 6)
+	slideBG.Position = UDim2.new(0, 12, 0, 30)
+	slideBG.BackgroundColor3 = Color3.fromRGB(40, 40, 45)
+	slideBG.Text = ""
+	slideBG.BorderSizePixel = 0
+	Instance.new("UICorner", slideBG).CornerRadius = UDim.new(0, 3)
 	
-	local fill = Instance.new("Frame", track)
-	fill.Size = UDim2.new(defaultVal / 100, 0, 1, 0)
-	fill.BackgroundColor3 = Color3.fromRGB(160, 210, 20)
-	fill.BorderSizePixel = 0
+	local slideFill = Instance.new("Frame", slideBG)
+	slideFill.Size = UDim2.new(defaultVal / 100, 0, 1, 0)
+	slideFill.BackgroundColor3 = Color3.fromRGB(160, 210, 20) -- ライムグリーン
+	slideFill.BorderSizePixel = 0
+	Instance.new("UICorner", slideFill).CornerRadius = UDim.new(0, 3)
 	
 	local dragging = false
-	local function update(input)
-		local posX = math.clamp((input.Position.X - track.AbsolutePosition.X) / track.AbsoluteSize.X, 0, 1)
-		fill.Size = UDim2.new(posX, 0, 1, 0)
-		valLbl.Text = tostring(math.round(posX * 100))
+	local function updateSlider(input)
+		local posX = math.clamp((input.Position.X - slideBG.AbsolutePosition.X) / slideBG.AbsoluteSize.X, 0, 1)
+		slideFill.Size = UDim2.new(posX, 0, 1, 0)
+		valueLbl.Text = tostring(math.round(posX * 100)) .. "%"
 	end
-	track.InputBegan:Connect(function(input)
-		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-			dragging = true update(input)
-		end
+	slideBG.InputBegan:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then dragging = true updateSlider(input) end
 	end)
 	UserInputService.InputChanged:Connect(function(input)
-		if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
-			update(input)
-		end
+		if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then updateSlider(input) end
 	end)
 	UserInputService.InputEnded:Connect(function(input)
-		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-			dragging = false
-		end
+		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then dragging = false end
 	end)
 end
 
--- ③ 見本のようなタイトル付きセクションカード（外枠）を作成する関数
-local function createSectionBox(parent, size, pos, titleText)
-	local box = Instance.new("Frame", parent)
-	box.Size = size
-	box.Position = pos
-	box.BackgroundColor3 = Color3.fromRGB(22, 22, 25)
-	box.BorderSizePixel = 0
-	Instance.new("UICorner", box).CornerRadius = UDim.new(0, 6)
+local function createRealToggle(parent, text)
+	local container = Instance.new("Frame", parent)
+	container.Size = UDim2.new(1, -10, 0, 35)
+	container.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
+	Instance.new("UICorner", container).CornerRadius = UDim.new(0, 6)
 	
-	local t = Instance.new("TextLabel", box)
-	t.Size = UDim2.new(1, -20, 0, 24)
-	t.Position = UDim2.new(0, 10, 0, 2)
-	t.Text = titleText
-	t.TextColor3 = Color3.fromRGB(255, 255, 255)
-	t.TextSize = 12
-	t.Font = Enum.Font.SourceSansBold
-	t.TextXAlignment = Enum.TextXAlignment.Left
-	t.BackgroundTransparency = 1
+	local lbl = Instance.new("TextLabel", container)
+	lbl.Size = UDim2.new(1, -60, 1, 0)
+	lbl.Position = UDim2.new(0, 12, 0, 0)
+	lbl.Text = "☐  " .. text
+	lbl.TextColor3 = Color3.fromRGB(160, 160, 165)
+	lbl.TextSize = 13
+	lbl.Font = Enum.Font.SourceSansBold
+	lbl.TextXAlignment = Enum.TextXAlignment.Left
+	lbl.BackgroundTransparency = 1
 	
-	local scroll = Instance.new("ScrollingFrame", box)
-	scroll.Size = UDim2.new(1, 0, 1, -28)
-	scroll.Position = UDim2.new(0, 0, 0, 26)
-	scroll.BackgroundTransparency = 1
-	scroll.BorderSizePixel = 0
-	scroll.ScrollBarThickness = 2
-	local lay = Instance.new("UIListLayout", scroll)
-	lay.Padding = UDim.new(0, 4)
+	local toggleBtn = Instance.new("TextButton", container)
+	toggleBtn.Size = UDim2.new(1, 0, 1, 0)
+	toggleBtn.BackgroundTransparency = 1
+	toggleBtn.Text = ""
 	
-	lay:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-		scroll.CanvasSize = UDim2.new(0, 0, 0, lay.AbsoluteContentSize.Y + 5)
+	local enabled = false
+	toggleBtn.MouseButton1Click:Connect(function()
+		enabled = not enabled
+		if enabled then lbl.Text = "☑  " .. text lbl.TextColor3 = Color3.fromRGB(160, 210, 20) else lbl.Text = "☐  " .. text lbl.TextColor3 = Color3.fromRGB(160, 160, 165) end
 	end)
-	
-	return scroll
 end
 
-----------------------------------------------------------------
--- ⚙️ 5番目のタブ「Yokai World」の中身：見本の4つの枠を完全再現！
-----------------------------------------------------------------
-local MainScroll = Instance.new("ScrollingFrame", Pages["gear"])
+-- 🟢 【新機能追加】オンにすると敵が緑色に透けて光る本物の「ESP」トグルスイッチ
+local EspToggleFrame = Instance.new("Frame", SunScroll)
+EspToggleFrame.Size = UDim2.new(1, -10, 0, 40)
+EspToggleFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
+Instance.new("UICorner", EspToggleFrame).CornerRadius = UDim.new(0, 6)
+
+local EspLbl = Instance.new("TextLabel", EspToggleFrame)
+EspLbl.Size = UDim2.new(1, -60, 1, 0)
+EspLbl.Position = UDim2.new(0, 12, 0, 0)
+EspLbl.Text = "☐  Player ESP (Green Highlight)"
+EspLbl.TextColor3 = Color3.fromRGB(160, 160, 165)
+EspLbl.TextSize = 13
+EspLbl.Font = Enum.Font.SourceSansBold
+EspLbl.TextXAlignment = Enum.TextXAlignment.Left
+EspLbl.BackgroundTransparency = 1
+
+local EspBtn = Instance.new("TextButton", EspToggleFrame)
+EspBtn.Size = UDim2.new(1, 0, 1, 0)
+EspBtn.BackgroundTransparency = 1
+EspBtn.Text = ""
+
+local espActive = false
+
+-- ESP（緑色発光ハイライト）のリアルタイムシステム
+box.MouseButton1Click:Connect(function() end) -- ボタン動作用
+EspBtn.MouseButton1Click:Connect(function()
+	espActive = not espActive
+	if espActive then
+		EspLbl.Text = "☑  Player ESP (Green Highlight)"
+		EspLbl.TextColor3 = Color3.fromRGB(160, 210, 20) -- チェックマーク緑化
+		
+		-- リアルタイムに全プレイヤーの周りに緑色のハイライトを出現させるループ
+		task.spawn(function()
+			while espActive do
+				for _, p in ipairs(Players:GetPlayers()) do
+					if p ~= LocalPlayer and p.Character then
